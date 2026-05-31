@@ -1,0 +1,6 @@
+[submodule "en-th-word-swap"]
+	path = en-th-word-swap
+	url = https://github.com/Vanler01/en-th-word-swap
+[submodule "num-to-text"]
+	path = num-to-text
+	url = https://github.com/Vanler01/num-to-text

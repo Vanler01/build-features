@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.pyo
+en-th-word-swap/cache/
+num-to-text/cache/
+morse-code/cache/
+old_ver/
+.claude/
+compass_artifact_*.md
