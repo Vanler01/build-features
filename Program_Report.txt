@@ -1,0 +1,450 @@
+================================================================================
+  PROGRAM REPORT — build-features
+  วันที่: 2026-06-01  (อัปเดตสถานะ: 2026-06-03)
+  จุดประสงค์: สรุปสถานะโปรแกรม เพื่อวางแผน skill.md ใหม่ และจัดเรียง GitHub ใหม่
+================================================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+0.  อัปเดตสถานะ (2026-06-03) — แทนที่ snapshot 2026-06-01 ด้านล่าง
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ทำตาม BUILD_PLAN.md ครบทั้ง 4 เฟส:
+    เฟส 1  แยก CLAUDE.md/AGENTS.md เป็น per-project (root เหลือของร่วม)
+    เฟส 2  เพิ่ม .claude/settings.json (permission) + .claude/agents/ 8 ตัว
+           + CLAUDE_CODE_SUBAGENT_MODEL (opus วาง / sonnet ทำ)
+    เฟส 3  แก้บั๊กค้าง BUG-1..10 ครบทุกตัว (ดูหัวข้อ 5)
+    เฟส 4  เพิ่ม morse-code เป็นโปรแกรมที่ 3 (submodule + docs)
+
+  โปรแกรมตอนนี้: 3 ตัว (en-th-word-swap, num-to-text, morse-code)
+
+  Test (ผ่านทั้งหมด, mock CGEventTap เสมอ):
+    en-th-word-swap : 94  (เดิม 69)
+    num-to-text     : 100 (เดิม 66)
+    morse-code      : 52  (เดิม 49)
+
+  Push policy: git push อยู่โหมด ask ใน settings.json — assistant สั่ง push ได้
+  แต่ harness ถามอนุมัติก่อนทุกครั้ง (ไม่ push เงียบ)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1.  โครงสร้าง Git Repository
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Outer repo (monorepo):
+    github.com/Vanler01/build-features   [main]
+    ├── en-th-word-swap  → submodule → github.com/Vanler01/en-th-word-swap
+    ├── num-to-text      → submodule → github.com/Vanler01/num-to-text
+    └── morse-code       → submodule → github.com/Vanler01/morse-decoder   (เพิ่ม 2026-06-03)
+
+  แต่ละโปรแกรมมี repo ของตัวเองอิสระ สามารถ clone แยกได้
+  outer repo ทำหน้าที่เป็น umbrella + track submodule commit pointer
+  (หมายเหตุ: path คือ morse-code แต่ remote repo ชื่อ morse-decoder)
+
+  Git history (outer):
+    df36adf  chore: update submodule pointers to latest commits
+    53f4273  feat: init monorepo with en-th-word-swap and num-to-text as submodules
+
+  Git history (en-th-word-swap):
+    028050c  feat: add auto-start preference to install and --setting wizard
+    1658b40  feat: add --status command to ENTHswap CLI
+    1644cf4  test: add test suite for en-th-word-swap (69 tests)
+    f291d6e  fix: install, stop, and crash-loop bugs
+    a6e2d96  feat: en-th-word-swap v0.1.0-beta
+
+  Git history (num-to-text):
+    09f6cf9  feat: add auto-start preference to install and new --setting command
+    d265091  feat: add --status command to ntt CLI
+    e1f7159  feat: implement Ctrl+Option+F global financial mode hotkey
+    e7baa62  test: add test suite for num-to-text (66 tests)
+    1806b53  fix: install, stop, and crash-loop bugs
+    c581c1f  feat: num-to-text v0.1.0-beta
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2.  โปรแกรม 1 — en-th-word-swap
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  จุดประสงค์:
+    แก้ปัญหาพิมพ์ผิดภาษาโดยไม่ตั้งใจ สองทิศทาง:
+    - Direction A: พิมพ์ไทยทั้งที่ตั้งใจพิมพ์อังกฤษ → ดนสกำพ → suggest "folder"
+    - Direction B: พิมพ์อังกฤษทั้งที่ตั้งใจพิมพ์ไทย → df → suggest "กด"
+
+  CLI: ENTHswap
+    ENTHswap             — รัน daemon
+    ENTHswap --stop      — หยุด daemon
+    ENTHswap --status    — ดูสถานะ
+    ENTHswap --setting   — ตั้งค่า
+    ENTHswap --install   — ติดตั้ง LaunchAgent
+    ENTHswap --uninstall — ถอนติดตั้ง
+    ENTHswap --update    — อัปเดต corpus
+
+  ไฟล์และหน้าที่:
+    main.py        CGEventTap + state machine + logic หลัก
+    keyboard_map.py  Kedmanee EN↔TH mapping table + word validation
+    overlay.py     NSPanel floating popup (SuggestionOverlay)
+    settings.py    ค่าตั้งต่าง ๆ → cache/settings.json
+    updater.py     อัปเดต corpus รายวัน + UserTracker (personal exclusion)
+    ENTHswap       CLI entry point
+    install.sh     ติดตั้ง LaunchAgent + ถาม auto-start
+    uninstall.sh   ถอนติดตั้ง
+
+  การทำงาน (flow):
+    1. CGEventTap intercept ทุก kCGEventKeyDown ก่อนแอปอื่น
+    2. สะสม char ใน _buf ตรวจ mode (thai / en)
+    3. กด Space → ตรวจ _get_suggestion()
+       - Direction A: thai_to_english() → ตรวจ /usr/share/dict/words
+       - Direction B: english_to_thai() → ตรวจ PyThaiNLP corpus
+    4. ถ้ามี suggestion → แสดง SuggestionOverlay → รอ confirm
+    5. Accept (Space/Enter) → ลบ char เดิม → inject ข้อความใหม่
+    6. Dismiss (Esc/BS) → บันทึกใน UserTracker
+
+  Settings ที่ปรับได้:
+    accept_key  : space | enter  (ปุ่มยืนยัน)
+    dismiss_bs  : false | true   (Backspace เป็น dismiss หรือไม่)
+    auto_start  : true | false   (เริ่มอัตโนมัติหลัง login)
+
+  Tests: tests/ (69 tests)
+    test_keyboard_map.py  — mapping table, Direction A/B, Thai validation
+    test_settings.py      — persistence, defaults, merge logic
+    test_suggestion.py    — suggestion logic
+    test_updater.py       — UserTracker, JSON helpers, cache loading
+
+  Dependencies:
+    pyobjc, pythainlp
+
+  Cache files (gitignored):
+    cache/settings.json     — user settings
+    cache/user_learned.json — personal word exclusion list
+    cache/en_internet.txt   — Wiktionary internet slang cache
+    cache/meta.json         — update timestamps
+    cache/daemon.pid        — PID file
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3.  โปรแกรม 2 — num-to-text
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  จุดประสงค์:
+    พิมพ์ตัวเลข กด Enter → popup แสดงตัวเลขเป็นคำอ่านทุกภาษาในระบบ
+    รองรับ normal mode และ financial (currency) mode
+
+  CLI: ntt
+    ntt              — รัน daemon
+    ntt --stop       — หยุด daemon
+    ntt --status     — ดูสถานะ
+    ntt --setting    — ตั้งค่า auto-start
+    ntt --install    — ติดตั้ง LaunchAgent
+    ntt --uninstall  — ถอนติดตั้ง
+    ntt --update     — อัปเดต packages
+
+  ไฟล์และหน้าที่:
+    main.py      CGEventTap + state machine + popup control
+    converter.py  ตัวเลข → คำ (Thai/Japanese/Chinese custom, อื่น ๆ ใช้ num2words)
+    languages.py  อ่าน AppleLanguages → map locale → num2words code
+    overlay.py   NSPanel floating popup พร้อม clickable rows (NumberOverlay)
+    settings.py  auto_start setting → cache/settings.json
+    ntt          CLI entry point
+    install.sh   ติดตั้ง LaunchAgent + ถาม auto-start
+    uninstall.sh ถอนติดตั้ง
+
+  การทำงาน (flow):
+    1. CGEventTap intercept ทุก kCGEventKeyDown
+    2. สะสมตัวเลข/จุดทศนิยม/ลบ ใน _buf
+    3. กด Enter → ตรวจ regex r"^-?\d+(\.\d+)?$"
+    4. _build() → แปลงทุก language → (normal_rows, financial_rows)
+    5. แสดง NumberOverlay พร้อมภาษาจาก AppleLanguages
+    6. ผู้ใช้เลือก: 1-5 เลือกแถว, Enter=แถวแรก, Tab=toggle financial, Esc/BS=ปิด
+    7. _select_row() → ลบตัวเลขเดิม → inject ข้อความ
+
+  Controls ใน popup:
+    1–5        เลือกภาษา → copy + พิมพ์ลงแอป
+    Enter      เลือกภาษาแรก
+    Tab        toggle normal ↔ financial mode
+    Esc/BS     dismiss
+    คลิก       copy ไป clipboard (แต่ไม่พิมพ์ลงแอป ← ดู bugs)
+    Ctrl+Opt+F global toggle financial mode default
+
+  Languages รองรับ:
+    th (ภาษาไทย), en (English), de (Deutsch), ja (日本語),
+    zh (中文), fr (Français), es (Español), ko (한국어), ru (Русский)
+
+  Converter ที่ implement เอง (ไม่ใช้ num2words):
+    Thai    — รองรับ สิบ/ยี่สิบ/เอ็ด/ล้าน ตามหลักภาษาไทยจริง
+    Japanese — รองรับ 万/億/兆, ไม่มี 一 prefix ที่ 十/百/千
+    Chinese  — รองรับ 万/亿, 十X shorthand, 零 padding
+
+  Settings ที่ปรับได้:
+    auto_start : true | false  (เริ่มอัตโนมัติหลัง login)
+
+  Tests: tests/ (66 tests)
+    test_converter.py  — Thai/Japanese/Chinese/English/German, financial mode, edge cases
+    test_languages.py  — AppleLanguages parsing
+
+  Dependencies:
+    pyobjc, num2words
+
+  Cache files (gitignored):
+    cache/settings.json  — user settings
+    cache/daemon.pid     — PID file
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3.5 โปรแกรม 3 — morse-code   (เพิ่ม 2026-06-03)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  จุดประสงค์:
+    floating panel แปลงข้อความ ↔ Morse แบบเรียลไทม์ (EN↔Morse, Thai↔Morse)
+    auto-detect ทิศทางจากสิ่งที่พิมพ์ เปิด/ปิด panel ด้วย hotkey Option+M
+
+  ต่างจากอีก 2 โปรแกรมตรงนี้ (สำคัญ):
+    - ไม่ดัก/inject คีย์ทั้งระบบ — CGEventTap ใช้แค่จับ hotkey Option+M
+    - ผู้ใช้พิมพ์ลงใน panel เอง → ไม่มีการ inject ลงแอปอื่น, ไม่มี password risk
+    - Accessibility ต้องใช้เฉพาะ hotkey; ตัว panel/converter ไม่ต้องขอ permission
+
+  CLI: morse  (install/uninstall/update LaunchAgent com.user.morse-code)
+
+  ไฟล์และหน้าที่:
+    main.py        CGEventTap จับ Option+M + daemon lifecycle
+    converter.py   ตาราง EN/Thai ↔ Morse + text_to_morse/morse_to_text/
+                   is_morse/detect_lang  (English = ITU standard)
+    overlay.py     NSPanel converter UI (ปุ่ม EN/TH = ภาษา output ตอน decode)
+    cli.py         morse CLI entry point
+    _gen_converter.py  ตัว generate ตาราง Thai Morse (dev tool, daemon ไม่เรียก)
+
+  Dependencies: pyobjc (อย่างเดียว)
+  Tests: tests/test_converter.py (52 tests) + test_singleton.py
+  Cache (gitignored): cache/daemon.pid, cache/daemon.lock
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4.  สถาปัตยกรรมร่วมของโปรแกรม
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Pattern ที่ใช้เหมือนกัน:
+    - CGEventTap: kCGSessionEventTap, kCGHeadInsertEventTap
+    - _SYNTH_MARK tag (kCGEventSourceUserData): ระบุ synthetic event แทนการนับ
+      counter (en-th, num — เปลี่ยนจาก _synth_pending ตอนแก้ BUG-9)
+    - _claim_singleton(): kill instance เก่า + เขียน PID ภายใต้ fcntl.flock
+      (กัน race ตอนแก้ BUG-10; เดิมเป็น _kill_existing ไม่มี lock)
+    - _in_password_field() + _in_terminal_app(): กัน inject ลง password/terminal
+      (en-th, num — เพิ่ม terminal guard ตอนแก้ BUG-1)
+    - atexit PID cleanup
+    - NSPanel: NSNonactivatingPanelMask + NSFloatingWindowLevel
+    - NSWindowCollectionBehaviorCanJoinAllSpaces: ขึ้นทุก Desktop
+    - Retry loop 30s เมื่อไม่มี Accessibility permission
+    - daemon=True threads ทั้งหมด
+
+  shared concepts แต่ implementation ต่างกัน:
+    overlay.py    — ทั้งสามมี; SuggestionOverlay/NumberOverlay สร้างครั้งเดียว
+                    แล้ว reuse (NumberOverlay แก้ให้ reuse ตอน BUG-6)
+    settings.py   — en-th หลาย field, num มีแค่ auto_start, morse ไม่มี settings.py
+    การ inject    — en-th/num inject ข้อความลงแอปอื่น; morse ไม่ inject
+                    (ใช้ CGEventTap แค่ hotkey Option+M)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5.  บัค / ข้อจำกัดที่รู้แล้ว
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✅ สถานะ 2026-06-03: BUG-1..10 แก้ครบทุกตัว (มี test ครอบทุกการแก้)
+     BUG-1  guard terminal app (en-th, num) — silent pass-through ใน terminal
+     BUG-2  reset _just_dismissed เมื่อพิมพ์ char ใหม่ (en-th)
+     BUG-3  ใส่ ๆ ใน _THAI_BAD_START (en-th, structural fallback)
+     BUG-4  เพิ่ม test auto_start/set_auto_start (en-th, num)
+     BUG-5  คลิก row → inject ผ่าน on_select เหมือน keyboard (num)
+     BUG-6  reuse NSPanel ของ NumberOverlay (num)
+     BUG-7  get_system_languages() fallback เป็น en เสมอ (num)
+     BUG-8  wire on_select callback (num — แก้พร้อม BUG-5)
+     BUG-9  tag synthetic event ด้วย _SYNTH_MARK แทน counter (en-th, num)
+     BUG-10 _claim_singleton ใช้ fcntl.flock กัน PID race (en-th, num, morse)
+     (รายละเอียดเดิมด้านล่างเก็บไว้เป็น context — แก้แล้วทั้งหมด)
+
+  ─── en-th-word-swap ───────────────────────────────────────────────────────────
+
+  [BUG-1] Password detection ไม่ครอบ terminal prompts
+    ไฟล์: main.py บรรทัด 45–66
+    _in_password_field() ตรวจได้เฉพาะ AXSecureTextField (native/browser)
+    ไม่สามารถตรวจ sudo, ssh, mysql password prompts ใน terminal ได้
+    ความเสี่ยง: อาจ inject ข้อความลงช่อง password ใน terminal
+    แนวทางแก้: ตรวจ frontmost app เป็น Terminal/iTerm แล้ว disable หรือ
+               prompt ให้ user whitelist apps
+
+  [BUG-2] _just_dismissed ข้ามคำถัดไปด้วย
+    ไฟล์: main.py บรรทัด 279–283
+    หลัง dismiss ถ้า user พิมพ์คำใหม่แล้วกด Space → คำนั้นก็ไม่ได้ suggestion
+    เพราะ _just_dismissed ยังเป็น True จนกว่าจะกด Space
+    ผลกระทบ: UX ไม่ smoothถ้า dismiss แล้วพิมพ์ต่อเลย
+    แนวทางแก้: reset _just_dismissed เมื่อ _buf มีเนื้อหาใหม่
+
+  [BUG-3] Structural fallback: ๆ ผ่านการตรวจ start character
+    ไฟล์: keyboard_map.py บรรทัด 39–43
+    _THAI_BAD_START ไม่รวม ๆ แต่ ๆ อยู่ใน _THAI_NON_CONSONANT
+    structural check ตรวจ word[0] in _THAI_BAD_START เท่านั้น
+    ดังนั้น word ขึ้นต้นด้วย ๆ อาจผ่าน fallback ได้ (ไม่ใช่คำจริง)
+    ผลกระทบ: เกิดเฉพาะเมื่อ PyThaiNLP ไม่ได้ติดตั้ง (fallback mode)
+
+  [BUG-4] test_settings.py ไม่ครอบ auto_start ที่เพิ่งเพิ่ม
+    ไฟล์: tests/test_settings.py
+    auto_start property และ set_auto_start() ยังไม่มี test
+    ความเสี่ยง: regression หากแก้ settings.py ในอนาคต
+
+  ─── num-to-text ──────────────────────────────────────────────────────────────
+
+  [BUG-5] คลิก row ใน overlay ไม่พิมพ์ลงแอป — copy อย่างเดียว
+    ไฟล์: overlay.py บรรทัด 121–126, main.py
+    กด keyboard (1-5, Enter) → _select_row() → ลบตัวเลข + inject ข้อความ ✓
+    คลิก mouse → _copy_and_hide() → copy clipboard เท่านั้น ไม่ inject ✗
+    พฤติกรรมไม่สม่ำเสมอ user คาดว่าคลิกแล้วได้ผลเหมือน keyboard
+    แนวทางแก้: ให้ _RowDelegate.clicked_ เรียก _post_text หรือ callback ที่ inject
+
+  [BUG-6] NumberOverlay สร้าง NSPanel ใหม่ทุกครั้ง
+    ไฟล์: overlay.py บรรทัด 70
+    show() เรียก hide() แล้วสร้าง NSPanel ใหม่ทุกครั้ง
+    ต่างจาก SuggestionOverlay ซึ่งสร้างครั้งเดียวแล้ว reuse
+    ผลกระทบ: สิ้นเปลือง memory/CPU เมื่อกด Enter บ่อย ๆ
+    แนวทางแก้: cache window/subview และ rebuild เฉพาะ rows ที่เปลี่ยน
+
+  [BUG-7] ถ้า AppleLanguages ไม่มี language ที่รู้จักเลย — popup ไม่ขึ้น
+    ไฟล์: main.py บรรทัด 234
+    _build() คืน empty list → if nr: ไม่ผ่าน → Enter ผ่านไปตามปกติ
+    ไม่มี error message แจ้ง user
+    แนวทางแก้: เพิ่ม fallback language (en) หรือ warn ตอน startup
+
+  [BUG-8] _on_select callback ใน NumberOverlay ไม่ถูกใช้จริง
+    ไฟล์: overlay.py บรรทัด 37, main.py บรรทัด 303
+    main.py สร้าง NumberOverlay() ไม่ส่ง on_select → default คือ lambda t: None
+    ดังนั้น click callback ทำแค่ copy แล้ว hide (เป็นเหตุของ BUG-5)
+    parameter on_select เป็น dead code ในการใช้งานปัจจุบัน
+
+  ─── ทั้งสองโปรแกรม ──────────────────────────────────────────────────────────
+
+  [BUG-9] _synth_pending race condition (async CGEventPost)
+    ไฟล์: main.py ทั้งสองโปรแกรม
+    CGEventPost async — synthetic events อาจถึง callback หลัง
+    real keypress อื่น ๆ ทำให้ counter อาจ mismatch
+    ผลกระทบ: rare แต่อาจทำให้ real keystroke ถูก suppress ผิด
+    Comment ใน code ยืนยัน known issue แต่ยังไม่แก้
+
+  [BUG-10] PID file ไม่ lock (race condition)
+    ไฟล์: main.py _kill_existing() ทั้งสองโปรแกรม
+    อ่าน/เขียน PID file ไม่ได้ใช้ file lock
+    ถ้า start 2 instances พร้อมกัน อาจเกิด race condition
+    ในทางปฏิบัติ LaunchAgent ไม่ start ซ้ำ แต่อาจเกิดจาก manual run
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6.  AGENTS.md — ทำอะไรและแบ่งหน้าที่อย่างไร
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ปัจจุบัน: AGENTS.md (outer repo) รวมทั้งสองโปรแกรมในไฟล์เดียว
+  ตำแหน่ง: ~/build-features/AGENTS.md  (referenced จาก CLAUDE.md ด้วย @AGENTS.md)
+
+  หน้าที่ของ AGENTS.md:
+    1. Key Commands — คำสั่ง install, run, log, uninstall
+    2. Code Style   — type hints, log format, docstrings, line length, bare except
+    3. Git Workflow — naming convention, commit message, security rules
+    4. Testing Rules — mock CGEventTap, coverage target, patch PyObjC
+    5. Architecture Constraints — CGEventTap flags, NSPanel masks, cache format
+    6. File Ownership table — ระบุว่าแต่ละไฟล์เป็นของโปรแกรมไหน
+
+  Specialized agents ที่ CLAUDE.md กำหนดให้ใช้:
+    macos-api-specialist  — เรียกใช้เมื่อแตะ CGEventTap/NSPanel code
+    thai-lang-validator   — เรียกใช้ก่อนแก้ keyboard_map.py
+    build-error-resolver  — เรียกทันทีเมื่อเกิด ImportError/AttributeError
+    num-converter-validator — เรียกก่อนแก้ converter.py หรือ Thai/Chinese/Japanese algo
+
+  ข้อสังเกต (ดูหัวข้อ 7 สำหรับข้อเสนอแนะ):
+    - AGENTS.md ปัจจุบันไม่แยก context ของสองโปรแกรม
+    - เมื่อทำงานใน en-th-word-swap repo เดียว ยังต้องการ context ของ num-to-text ด้วย
+    - File Ownership table ช่วยได้บางส่วนแต่ไม่ครบถ้วน
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7.  ข้อเสนอแนะ: แยก CLAUDE.md / AGENTS.md ต่อโปรแกรม
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ปัญหาของการรวมไว้ด้วยกัน:
+    - เมื่อทำงานใน en-th-word-swap/ โดยตรง Claude โหลด CLAUDE.md ของ outer repo
+      แต่ไม่รู้ว่าตัวเองอยู่ใน submodule ใด → context ซ้อนทับกัน
+    - Rules เฉพาะของ en-th (เช่น thai-lang-validator) ปะปนกับ Rules ของ num-to-text
+    - เมื่อมีโปรแกรมที่ 3 จะทำให้ไฟล์รวมใหญ่และจัดการยาก
+
+  โครงสร้างที่แนะนำ:
+
+    build-features/
+    ├── CLAUDE.md            ← overview ระดับ monorepo, Git submodule rules เท่านั้น
+    ├── AGENTS.md            ← agents ที่ใช้ทั่วโปรเจกต์ (macos-api-specialist ฯลฯ)
+    │
+    ├── en-th-word-swap/
+    │   ├── CLAUDE.md        ← rules เฉพาะ en-th: keyboard_map, PyThaiNLP,
+    │   │                       UserTracker, Wiktionary updater
+    │   └── AGENTS.md        ← thai-lang-validator trigger, test rules, file ownership
+    │
+    └── num-to-text/
+        ├── CLAUDE.md        ← rules เฉพาะ num: converter.py, languages.py,
+        │                       financial mode, num2words
+        └── AGENTS.md        ← num-converter-validator trigger, test rules, file ownership
+
+  สิ่งที่ควรอยู่ใน CLAUDE.md ระดับ outer:
+    - Stack (Python 3.10+, PyObjC, macOS 12+)
+    - Security rules (no keystroke logging)
+    - Git submodule workflow
+    - Shared architecture patterns (CGEventTap, NSPanel)
+
+  สิ่งที่ควรย้ายลงไป per-project CLAUDE.md:
+    en-th:  keyboard_map.py rules, PyThaiNLP usage, Direction A/B logic
+    num:    converter.py rules, Thai/JA/ZH custom algorithm, language detection
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8.  Coverage และ Test Status
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  en-th-word-swap: 94 tests  (เดิม 69)
+    test_keyboard_map.py  — mapping table (EN↔TH), Direction A/B, Thai validation
+                            + ๆ ขึ้นต้นคำใน fallback (BUG-3)
+    test_settings.py      — persistence, defaults, corrupt file, partial merge
+                            + auto_start property / set_auto_start (BUG-4)
+    test_suggestion.py    — suggestion logic end-to-end
+    test_updater.py       — UserTracker, JSON I/O, cache loading, background thread
+    test_password_guard.py — terminal/password context guard (BUG-1)
+    test_callback.py      — _just_dismissed reset (BUG-2) + _SYNTH_MARK passthrough (BUG-9)
+    test_singleton.py     — _claim_singleton PID flock (BUG-10)
+
+  num-to-text: 100 tests  (เดิม 66)
+    test_converter.py     — Thai/Japanese/Chinese/English/German, financial mode,
+                            edge cases (invalid string, comma, whitespace, large numbers)
+    test_languages.py     — AppleLanguages parsing + en fallback (BUG-7)
+    test_settings.py      — settings coverage incl. auto_start (BUG-4 mirror; เดิมไม่มีไฟล์นี้)
+    test_password_guard.py — terminal/password context guard (BUG-1)
+    test_select.py        — click/keyboard ใช้ inject path เดียวกัน (BUG-5/8)
+    test_overlay_click.py — click row → on_select (BUG-5/8)
+    test_overlay_reuse.py — NumberOverlay reuse NSPanel (BUG-6)
+    test_callback.py      — _SYNTH_MARK passthrough (BUG-9)
+    test_singleton.py     — _claim_singleton PID flock (BUG-10)
+
+  morse-code: 52 tests
+    test_converter.py     — EN↔Morse, Thai↔Morse, is_morse, detect_lang, round-trips
+    test_singleton.py     — _claim_singleton PID flock (BUG-10)
+
+  ยังไม่มี test สำหรับ (ต้องการ macOS runtime จริง):
+    - overlay.py แบบเต็ม (UI rendering) — มี test ระดับ logic แล้วบางส่วน
+    - install.sh / uninstall.sh
+    - การรัน CGEventTap จริง (ห้าม mock ไม่ได้ — verify ด้วยมือ; BUG-9 verify marker สดแล้ว)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9.  สรุปสั้น สำหรับการวางแผนใหม่
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✓  3 โปรแกรมแยก repo อิสระ (GitHub submodule) พร้อมใช้งาน (เพิ่ม morse-code)
+  ✓  Test suite ครอบ logic หลัก + การแก้บั๊กทุกตัว (94+100+52 tests)
+  ✓  Settings ปรับได้ผ่าน --setting + บันทึก JSON
+  ✓  Auto-start toggle ทำงานทั้งตอน install และตอน --setting
+  ✓  BUG-1..10 แก้ครบ (คลิก inject, terminal guard, auto_start test, ฯลฯ)
+  ✓  แยก CLAUDE.md/AGENTS.md ต่อโปรแกรมแล้ว (เฟส 1) + .claude/agents + settings.json (เฟส 2)
+  ✓  morse-code เพิ่มเป็นโปรแกรมที่ 3 ตาม pattern เดิม (เฟส 4)
+  !  เหลือ: live smoke test การ inject จริง (BUG-9 เป็น core path — verify marker แล้ว แต่ควรลองสด)
+
+================================================================================
