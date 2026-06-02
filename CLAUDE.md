@@ -5,6 +5,7 @@ independent git submodule with its own repo, tests, and `cache/`.
 
 - **en-th-word-swap** — keyboard layout fix (EN↔TH mistype correction)
 - **num-to-text** — number-to-words floating overlay
+- **morse-code** — text ↔ Morse converter panel (Option+M hotkey)
 
 > Per-project rules live in each submodule's own `CLAUDE.md`. When working
 > inside a submodule, Claude Code loads this root file **and** the submodule's
@@ -40,5 +41,9 @@ independent git submodule with its own repo, tests, and `cache/`.
 ## Project Paths
 - en-th-word-swap: ~/build-features/en-th-word-swap/  (rules: its own CLAUDE.md)
 - num-to-text:     ~/build-features/num-to-text/      (rules: its own CLAUDE.md)
+- morse-code:      ~/build-features/morse-code/       (rules: its own CLAUDE.md)
+
+Note: en-th-word-swap and num-to-text monitor/inject keystrokes system-wide;
+morse-code uses CGEventTap only for its Option+M hotkey (no injection).
 
 @AGENTS.md

@@ -4,3 +4,6 @@
 [submodule "num-to-text"]
 	path = num-to-text
 	url = https://github.com/Vanler01/num-to-text
+[submodule "morse-code"]
+	path = morse-code
+	url = https://github.com/Vanler01/morse-decoder.git
