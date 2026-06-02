@@ -6,5 +6,8 @@ en-th-word-swap/cache/
 num-to-text/cache/
 morse-code/cache/
 old_ver/
-.claude/
+.claude/*
+!.claude/settings.json
+!.claude/agents/
+.claude/settings.local.json
 compass_artifact_*.md

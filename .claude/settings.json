@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read(**)",
+      "Grep(**)",
+      "Glob(**)",
+      "Edit(en-th-word-swap/**)",
+      "Edit(num-to-text/**)",
+      "Write(en-th-word-swap/**)",
+      "Write(num-to-text/**)",
+      "Bash(python3 -m pytest *)",
+      "Bash(ruff check *)",
+      "Bash(ruff:*)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git log *)",
+      "Bash(python3 -c *)"
+    ],
+    "deny": [
+      "Read(**/cache/**)",
+      "Write(**/cache/**)",
+      "Bash(rm -rf *)",
+      "Bash(git push *)",
+      "Bash(sudo *)",
+      "Bash(curl *)",
+      "Bash(* install.sh)"
+    ],
+    "ask": [
+      "Bash(git checkout *)",
+      "Bash(git reset *)"
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_SUBAGENT_MODEL": "claude-sonnet-4-6"
+  }
+}
