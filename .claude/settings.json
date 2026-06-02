@@ -23,12 +23,12 @@
       "Read(**/cache/**)",
       "Write(**/cache/**)",
       "Bash(rm -rf *)",
-      "Bash(git push *)",
       "Bash(sudo *)",
       "Bash(curl *)",
       "Bash(* install.sh)"
     ],
     "ask": [
+      "Bash(git push *)",
       "Bash(git checkout *)",
       "Bash(git reset *)"
     ]
