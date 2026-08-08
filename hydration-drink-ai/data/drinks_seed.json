@@ -1,0 +1,800 @@
+[
+  {
+    "id": "water_250",
+    "name": "Water",
+    "category": "water",
+    "subtype": "still",
+    "serving_size_ml": 250,
+    "calories": 0.0,
+    "sugar_g": 0.0,
+    "caffeine_mg": 0.0,
+    "is_alcohol": false,
+    "source": {
+      "calories": "definitional",
+      "sugar_g": "definitional",
+      "caffeine_mg": "definitional",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "sparkling_water_330",
+    "name": "Sparkling water",
+    "category": "water",
+    "subtype": "carbonated",
+    "serving_size_ml": 330,
+    "calories": 0.0,
+    "sugar_g": 0.0,
+    "caffeine_mg": 0.0,
+    "is_alcohol": false,
+    "source": {
+      "calories": "definitional",
+      "sugar_g": "definitional",
+      "caffeine_mg": "definitional",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "espresso_30",
+    "name": "Espresso",
+    "category": "coffee",
+    "subtype": "espresso",
+    "serving_size_ml": 30,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "double_espresso_60",
+    "name": "Double espresso",
+    "category": "coffee",
+    "subtype": "espresso",
+    "serving_size_ml": 60,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "americano_240",
+    "name": "Americano",
+    "category": "coffee",
+    "subtype": "espresso",
+    "serving_size_ml": 240,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "latte_350",
+    "name": "Latte",
+    "category": "coffee",
+    "subtype": "espresso_milk",
+    "serving_size_ml": 350,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "iced_latte_350",
+    "name": "Iced latte",
+    "category": "coffee",
+    "subtype": "espresso_milk",
+    "serving_size_ml": 350,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "cappuccino_180",
+    "name": "Cappuccino",
+    "category": "coffee",
+    "subtype": "espresso_milk",
+    "serving_size_ml": 180,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "flat_white_240",
+    "name": "Flat white",
+    "category": "coffee",
+    "subtype": "espresso_milk",
+    "serving_size_ml": 240,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "mocha_350",
+    "name": "Mocha",
+    "category": "coffee",
+    "subtype": "espresso_milk",
+    "serving_size_ml": 350,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "brewed_coffee_240",
+    "name": "Brewed coffee",
+    "category": "coffee",
+    "subtype": "filter",
+    "serving_size_ml": 240,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "cold_brew_350",
+    "name": "Cold brew",
+    "category": "coffee",
+    "subtype": "filter",
+    "serving_size_ml": 350,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "decaf_coffee_240",
+    "name": "Decaf coffee",
+    "category": "coffee",
+    "subtype": "filter",
+    "serving_size_ml": 240,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "instant_coffee_240",
+    "name": "Instant coffee",
+    "category": "coffee",
+    "subtype": "instant",
+    "serving_size_ml": 240,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "black_tea_240",
+    "name": "Black tea",
+    "category": "tea",
+    "subtype": "black",
+    "serving_size_ml": 240,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "green_tea_240",
+    "name": "Green tea",
+    "category": "tea",
+    "subtype": "green",
+    "serving_size_ml": 240,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "oolong_tea_240",
+    "name": "Oolong tea",
+    "category": "tea",
+    "subtype": "oolong",
+    "serving_size_ml": 240,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "herbal_tea_240",
+    "name": "Herbal tea",
+    "category": "tea",
+    "subtype": "herbal",
+    "serving_size_ml": 240,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "thai_milk_tea_300",
+    "name": "Thai milk tea",
+    "category": "tea",
+    "subtype": "milk_tea",
+    "serving_size_ml": 300,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "bubble_tea_500",
+    "name": "Bubble tea",
+    "category": "tea",
+    "subtype": "milk_tea",
+    "serving_size_ml": 500,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "matcha_latte_350",
+    "name": "Matcha latte",
+    "category": "matcha",
+    "subtype": "milk",
+    "serving_size_ml": 350,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "matcha_240",
+    "name": "Matcha",
+    "category": "matcha",
+    "subtype": "plain",
+    "serving_size_ml": 240,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "cola_330",
+    "name": "Cola",
+    "category": "soda",
+    "subtype": "cola",
+    "serving_size_ml": 330,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "diet_cola_330",
+    "name": "Diet cola",
+    "category": "soda",
+    "subtype": "cola",
+    "serving_size_ml": 330,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "lemon_soda_330",
+    "name": "Lemon-lime soda",
+    "category": "soda",
+    "subtype": "citrus",
+    "serving_size_ml": 330,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "ginger_ale_330",
+    "name": "Ginger ale",
+    "category": "soda",
+    "subtype": "ginger",
+    "serving_size_ml": 330,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "root_beer_330",
+    "name": "Root beer",
+    "category": "soda",
+    "subtype": "root",
+    "serving_size_ml": 330,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "orange_juice_250",
+    "name": "Orange juice",
+    "category": "juice",
+    "subtype": "citrus",
+    "serving_size_ml": 250,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "apple_juice_250",
+    "name": "Apple juice",
+    "category": "juice",
+    "subtype": "pome",
+    "serving_size_ml": 250,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "coconut_water_330",
+    "name": "Coconut water",
+    "category": "juice",
+    "subtype": "coconut",
+    "serving_size_ml": 330,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "milk_250",
+    "name": "Milk",
+    "category": "milk",
+    "subtype": "dairy",
+    "serving_size_ml": 250,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "soy_milk_250",
+    "name": "Soy milk",
+    "category": "milk",
+    "subtype": "plant",
+    "serving_size_ml": 250,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "oat_milk_250",
+    "name": "Oat milk",
+    "category": "milk",
+    "subtype": "plant",
+    "serving_size_ml": 250,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "energy_drink_250",
+    "name": "Energy drink",
+    "category": "energy",
+    "subtype": "canned",
+    "serving_size_ml": 250,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "sports_drink_500",
+    "name": "Sports drink",
+    "category": "sports",
+    "subtype": "isotonic",
+    "serving_size_ml": 500,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": false,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "beer_330",
+    "name": "Beer",
+    "category": "beer",
+    "subtype": "lager",
+    "serving_size_ml": 330,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": true,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "craft_beer_330",
+    "name": "Craft beer",
+    "category": "beer",
+    "subtype": "ale",
+    "serving_size_ml": 330,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": true,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "red_wine_150",
+    "name": "Red wine",
+    "category": "wine",
+    "subtype": "red",
+    "serving_size_ml": 150,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": true,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "white_wine_150",
+    "name": "White wine",
+    "category": "wine",
+    "subtype": "white",
+    "serving_size_ml": 150,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": true,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "whisky_44",
+    "name": "Whisky",
+    "category": "spirits",
+    "subtype": "whisky",
+    "serving_size_ml": 44,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": true,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "vodka_44",
+    "name": "Vodka",
+    "category": "spirits",
+    "subtype": "vodka",
+    "serving_size_ml": 44,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": true,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  },
+  {
+    "id": "sake_180",
+    "name": "Sake",
+    "category": "spirits",
+    "subtype": "rice_wine",
+    "serving_size_ml": 180,
+    "calories": null,
+    "sugar_g": null,
+    "caffeine_mg": null,
+    "is_alcohol": true,
+    "source": {
+      "calories": "missing",
+      "sugar_g": "missing",
+      "caffeine_mg": "missing",
+      "serving_size_ml": "manual:convention",
+      "is_alcohol": "manual:verified"
+    },
+    "fetched_at": null
+  }
+]

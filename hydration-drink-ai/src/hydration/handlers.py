@@ -26,7 +26,7 @@ from typing import Protocol
 
 from .adapters.port import IncomingKind, IncomingMessage, OutgoingMessage
 from .ai.schema import ParseResult
-from .ai.validate import validate
+from .ai.validate import ValidationOutcome, validate
 from .core import catalog, day, linking, logs
 from .core import users as users_mod
 from .core.models import LogEntry, LogSource, Platform
@@ -58,13 +58,35 @@ class Parser(Protocol):
         ...
 
 
+class PhotoParser(Protocol):
+    """Parses a drink photo. Separate from ``Parser`` so text works without it."""
+
+    def __call__(self, image: bytes, caption: str | None) -> ParseResult:
+        """Identify the drinks in a photo."""
+        ...
+
+
+class PhotoFetcher(Protocol):
+    """Downloads a photo's bytes from the platform that holds it."""
+
+    def __call__(self, photo_ref: str) -> bytes:
+        """Return the image bytes for a platform reference."""
+        ...
+
+
 @dataclass(frozen=True, slots=True)
 class HandlerDeps:
-    """Everything the handler needs from the outside world."""
+    """Everything the handler needs from the outside world.
+
+    ``parse_photo`` and ``fetch_photo`` are optional so a deployment can run
+    text-only: vision costs per image, and not every operator wants it on.
+    """
 
     parse: Parser
     link_base_url: str
     now: Callable[[], datetime] = day.utc_now
+    parse_photo: PhotoParser | None = None
+    fetch_photo: PhotoFetcher | None = None
 
 
 def handle(
@@ -97,12 +119,7 @@ def _route(
         return _command(conn, user_id, message, deps)
 
     if message.kind is IncomingKind.PHOTO:
-        # Vision lands in Phase 3. Say so plainly rather than dropping it.
-        return [
-            OutgoingMessage(
-                text="I can't read photos yet — tell me what it was and I'll log it."
-            )
-        ]
+        return _log_photo(conn, user_id, message, deps)
 
     if message.kind is IncomingKind.LOCATION:
         # Nearby places is Phase 6.
@@ -218,6 +235,31 @@ def _link(conn: sqlite3.Connection, user_id: str, platform: Platform, deps: Hand
 # -- free-text logging ------------------------------------------------------
 
 
+def _log_photo(
+    conn: sqlite3.Connection, user_id: str, message: IncomingMessage, deps: HandlerDeps
+) -> list[OutgoingMessage]:
+    """Fetch, parse and log a drink photo.
+
+    The image bytes live in a local variable for the duration of this call and
+    are never written anywhere (CLAUDE.md rule 1).
+    """
+    if deps.parse_photo is None or deps.fetch_photo is None:
+        return [
+            OutgoingMessage(
+                text="I can't read photos here — tell me what it was and I'll log it."
+            )
+        ]
+
+    try:
+        image = deps.fetch_photo(message.photo_ref or "")
+        parsed = deps.parse_photo(image, message.text)
+    except Exception as exc:  # noqa: BLE001 — download or vision failure reads the same
+        _LOG.warning("photo parse unavailable: %s", type(exc).__name__)
+        return [OutgoingMessage(text=RETRY_MESSAGE)]
+
+    return _write_entries(conn, user_id, validate(parsed), deps, LogSource.PHOTO)
+
+
 def _log_text(
     conn: sqlite3.Connection, user_id: str, message: IncomingMessage, deps: HandlerDeps
 ) -> list[OutgoingMessage]:
@@ -231,7 +273,17 @@ def _log_text(
         _LOG.warning("parse unavailable: %s", type(exc).__name__)
         return [OutgoingMessage(text=RETRY_MESSAGE)]
 
-    outcome = validate(parsed)
+    return _write_entries(conn, user_id, validate(parsed), deps, LogSource.TEXT)
+
+
+def _write_entries(
+    conn: sqlite3.Connection,
+    user_id: str,
+    outcome: ValidationOutcome,
+    deps: HandlerDeps,
+    source: LogSource,
+) -> list[OutgoingMessage]:
+    """Turn a validated parse into log rows and a confirmation."""
     if not outcome.ok:
         return [OutgoingMessage(text=outcome.question or RETRY_MESSAGE)]
 
@@ -253,7 +305,7 @@ def _log_text(
             LogEntry(
                 user_id=user_id,
                 logged_at=now,
-                source=LogSource.TEXT,
+                source=source,
                 drink_id=row["id"] if row is not None else None,
                 custom_name=None if row is not None else drink.drink_type,
                 quantity=drink.quantity,

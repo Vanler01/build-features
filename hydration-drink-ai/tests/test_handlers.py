@@ -362,9 +362,116 @@ def test_unknown_command_offers_help(conn: sqlite3.Connection) -> None:
 # --- not-yet-built surfaces ------------------------------------------------
 
 
-def test_photo_is_acknowledged_rather_than_dropped(conn: sqlite3.Connection) -> None:
+def test_photo_without_vision_configured_is_acknowledged(
+    conn: sqlite3.Connection,
+) -> None:
+    """Vision costs per image, so a deployment may run text-only."""
     replies = handlers.handle(conn, incoming(kind=IncomingKind.PHOTO), deps())
-    assert "can't read photos yet" in replies[0].text
+    assert "can't read photos" in replies[0].text
+
+
+def photo_deps(
+    result: ParseResult | None = None, *, fetch_boom: bool = False, vision_boom: bool = False
+) -> handlers.HandlerDeps:
+    def fetch(photo_ref: str) -> bytes:
+        if fetch_boom:
+            raise RuntimeError("download failed")
+        return b"fake-image-bytes"
+
+    def parse_photo(image: bytes, caption: str | None) -> ParseResult:
+        if vision_boom:
+            raise RuntimeError("vision unavailable")
+        return result if result is not None else parsed(("latte", 1))
+
+    return handlers.HandlerDeps(
+        parse=lambda text: parsed(("water", 1)),
+        link_base_url=BASE_URL,
+        now=lambda: NOON_BKK,
+        parse_photo=parse_photo,
+        fetch_photo=fetch,
+    )
+
+
+def test_photo_is_logged_when_vision_is_configured(
+    conn: sqlite3.Connection, catalog: None
+) -> None:
+    bangkok_user(conn)
+    replies = handlers.handle(conn, incoming(kind=IncomingKind.PHOTO), photo_deps())
+
+    assert "Logged" in replies[0].text
+    assert conn.execute("SELECT COUNT(*) AS n FROM logs").fetchone()["n"] == 1
+
+
+def test_photo_entries_record_their_source(
+    conn: sqlite3.Connection, catalog: None
+) -> None:
+    """So a bad source can be traced and purged later."""
+    bangkok_user(conn)
+    handlers.handle(conn, incoming(kind=IncomingKind.PHOTO), photo_deps())
+    assert conn.execute("SELECT source FROM logs").fetchone()["source"] == "photo"
+
+
+def test_photo_caption_reaches_the_vision_parser(
+    conn: sqlite3.Connection, catalog: None
+) -> None:
+    seen: dict[str, str | None] = {}
+
+    def parse_photo(image: bytes, caption: str | None) -> ParseResult:
+        seen["caption"] = caption
+        return parsed(("latte", 1))
+
+    bangkok_user(conn)
+    d = handlers.HandlerDeps(
+        parse=lambda text: parsed(("water", 1)),
+        link_base_url=BASE_URL,
+        now=lambda: NOON_BKK,
+        parse_photo=parse_photo,
+        fetch_photo=lambda ref: b"bytes",
+    )
+    msg = incoming("morning latte", kind=IncomingKind.PHOTO)
+    handlers.handle(conn, msg, d)
+    assert seen["caption"] == "morning latte"
+
+
+def test_alcohol_in_a_photo_is_refused_too(
+    conn: sqlite3.Connection, catalog: None
+) -> None:
+    """The age gate cannot be bypassed by photographing the drink."""
+    bangkok_user(conn)
+    replies = handlers.handle(
+        conn, incoming(kind=IncomingKind.PHOTO), photo_deps(parsed(("Beer", 1)))
+    )
+    assert "app" in replies[0].text.lower()
+    assert conn.execute("SELECT COUNT(*) AS n FROM logs").fetchone()["n"] == 0
+
+
+def test_photo_download_failure_becomes_a_plain_retry(conn: sqlite3.Connection) -> None:
+    bangkok_user(conn)
+    replies = handlers.handle(
+        conn, incoming(kind=IncomingKind.PHOTO), photo_deps(fetch_boom=True)
+    )
+    assert replies[0].text == handlers.RETRY_MESSAGE
+
+
+def test_vision_failure_becomes_a_plain_retry(conn: sqlite3.Connection) -> None:
+    bangkok_user(conn)
+    replies = handlers.handle(
+        conn, incoming(kind=IncomingKind.PHOTO), photo_deps(vision_boom=True)
+    )
+    assert replies[0].text == handlers.RETRY_MESSAGE
+
+
+def test_unreadable_photo_asks_rather_than_guessing(
+    conn: sqlite3.Connection, catalog: None
+) -> None:
+    bangkok_user(conn)
+    replies = handlers.handle(
+        conn,
+        incoming(kind=IncomingKind.PHOTO),
+        photo_deps(parsed(ask="I can't tell what that is — what was it?")),
+    )
+    assert "can't tell" in replies[0].text
+    assert conn.execute("SELECT COUNT(*) AS n FROM logs").fetchone()["n"] == 0
 
 
 def test_location_is_acknowledged_rather_than_dropped(conn: sqlite3.Connection) -> None:
