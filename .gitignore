@@ -30,3 +30,11 @@ dist/
 !.claude/agents/
 .claude/settings.local.json
 compass_artifact_*.md
+
+# Flutter — unanchored so they match at any depth (the app lives in
+# hydration-drink-ai/app/, not at the repo root)
+.dart_tool/
+**/app/build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
