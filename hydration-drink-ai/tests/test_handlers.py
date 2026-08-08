@@ -370,13 +370,13 @@ def test_photo_without_vision_configured_is_acknowledged(
     assert "can't read photos" in replies[0].text
 
 
+IMAGE = b"fake-image-bytes"
+
+
 def photo_deps(
-    result: ParseResult | None = None, *, fetch_boom: bool = False, vision_boom: bool = False
+    result: ParseResult | None = None, *, vision_boom: bool = False
 ) -> handlers.HandlerDeps:
-    def fetch(photo_ref: str) -> bytes:
-        if fetch_boom:
-            raise RuntimeError("download failed")
-        return b"fake-image-bytes"
+    """Vision configured. The transport downloads, so no fetcher is needed."""
 
     def parse_photo(image: bytes, caption: str | None) -> ParseResult:
         if vision_boom:
@@ -388,7 +388,6 @@ def photo_deps(
         link_base_url=BASE_URL,
         now=lambda: NOON_BKK,
         parse_photo=parse_photo,
-        fetch_photo=fetch,
     )
 
 
@@ -396,7 +395,7 @@ def test_photo_is_logged_when_vision_is_configured(
     conn: sqlite3.Connection, catalog: None
 ) -> None:
     bangkok_user(conn)
-    replies = handlers.handle(conn, incoming(kind=IncomingKind.PHOTO), photo_deps())
+    replies = handlers.handle(conn, incoming(kind=IncomingKind.PHOTO), photo_deps(), IMAGE)
 
     assert "Logged" in replies[0].text
     assert conn.execute("SELECT COUNT(*) AS n FROM logs").fetchone()["n"] == 1
@@ -407,7 +406,7 @@ def test_photo_entries_record_their_source(
 ) -> None:
     """So a bad source can be traced and purged later."""
     bangkok_user(conn)
-    handlers.handle(conn, incoming(kind=IncomingKind.PHOTO), photo_deps())
+    handlers.handle(conn, incoming(kind=IncomingKind.PHOTO), photo_deps(), IMAGE)
     assert conn.execute("SELECT source FROM logs").fetchone()["source"] == "photo"
 
 
@@ -426,10 +425,9 @@ def test_photo_caption_reaches_the_vision_parser(
         link_base_url=BASE_URL,
         now=lambda: NOON_BKK,
         parse_photo=parse_photo,
-        fetch_photo=lambda ref: b"bytes",
     )
     msg = incoming("morning latte", kind=IncomingKind.PHOTO)
-    handlers.handle(conn, msg, d)
+    handlers.handle(conn, msg, d, IMAGE)
     assert seen["caption"] == "morning latte"
 
 
@@ -439,16 +437,17 @@ def test_alcohol_in_a_photo_is_refused_too(
     """The age gate cannot be bypassed by photographing the drink."""
     bangkok_user(conn)
     replies = handlers.handle(
-        conn, incoming(kind=IncomingKind.PHOTO), photo_deps(parsed(("Beer", 1)))
+        conn, incoming(kind=IncomingKind.PHOTO), photo_deps(parsed(("Beer", 1))), IMAGE
     )
     assert "app" in replies[0].text.lower()
     assert conn.execute("SELECT COUNT(*) AS n FROM logs").fetchone()["n"] == 0
 
 
-def test_photo_download_failure_becomes_a_plain_retry(conn: sqlite3.Connection) -> None:
+def test_a_failed_download_becomes_a_plain_retry(conn: sqlite3.Connection) -> None:
+    """Vision is on, so no bytes means the transport's download failed."""
     bangkok_user(conn)
     replies = handlers.handle(
-        conn, incoming(kind=IncomingKind.PHOTO), photo_deps(fetch_boom=True)
+        conn, incoming(kind=IncomingKind.PHOTO), photo_deps(), None
     )
     assert replies[0].text == handlers.RETRY_MESSAGE
 
@@ -456,7 +455,7 @@ def test_photo_download_failure_becomes_a_plain_retry(conn: sqlite3.Connection) 
 def test_vision_failure_becomes_a_plain_retry(conn: sqlite3.Connection) -> None:
     bangkok_user(conn)
     replies = handlers.handle(
-        conn, incoming(kind=IncomingKind.PHOTO), photo_deps(vision_boom=True)
+        conn, incoming(kind=IncomingKind.PHOTO), photo_deps(vision_boom=True), IMAGE
     )
     assert replies[0].text == handlers.RETRY_MESSAGE
 
@@ -469,6 +468,7 @@ def test_unreadable_photo_asks_rather_than_guessing(
         conn,
         incoming(kind=IncomingKind.PHOTO),
         photo_deps(parsed(ask="I can't tell what that is — what was it?")),
+        IMAGE,
     )
     assert "can't tell" in replies[0].text
     assert conn.execute("SELECT COUNT(*) AS n FROM logs").fetchone()["n"] == 0

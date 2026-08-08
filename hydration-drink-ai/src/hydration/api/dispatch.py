@@ -13,7 +13,7 @@ import sqlite3
 from dataclasses import dataclass
 
 from .. import handlers
-from ..adapters.port import IncomingMessage, MessagingPort
+from ..adapters.port import IncomingKind, IncomingMessage, MessagingPort
 from ..core import events
 from ..core.models import Platform
 
@@ -45,8 +45,10 @@ class Dispatcher:
             )
             return False
 
+        photo_bytes = await self._download_photo(adapter, message)
+
         try:
-            replies = handlers.handle(conn, message, self.deps)
+            replies = handlers.handle(conn, message, self.deps, photo_bytes)
         except Exception:
             # handlers.handle catches its own failures, so reaching here means
             # something below it broke badly. Release the claim so the
@@ -62,3 +64,28 @@ class Dispatcher:
                 message.platform_user_id, reply, reply_token=message.reply_token
             )
         return True
+
+    async def _download_photo(
+        self, adapter: MessagingPort, message: IncomingMessage
+    ) -> bytes | None:
+        """Fetch a photo's bytes, if this is a photo and vision is switched on.
+
+        Downloading here rather than in the handler is what lets the handler
+        stay synchronous: ``fetch_photo`` is async and per-platform, and this
+        is the only layer that is both async and holds the right adapter.
+
+        Skipped entirely when vision is off, so a text-only deployment never
+        pays for a download it would immediately discard.
+        """
+        if message.kind is not IncomingKind.PHOTO or self.deps.parse_photo is None:
+            return None
+        if not message.photo_ref:
+            return None
+
+        try:
+            return await adapter.fetch_photo(message.photo_ref)
+        except Exception:  # noqa: BLE001 — a failed download is a retry, not a crash
+            _LOG.warning(
+                "photo download failed for %s; replying with a retry", message.platform
+            )
+            return None

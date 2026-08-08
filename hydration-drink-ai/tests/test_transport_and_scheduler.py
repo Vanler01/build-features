@@ -42,6 +42,9 @@ class FakeAdapter:
         self.ok = ok
         self.sent: list[tuple[str, OutgoingMessage, str | None]] = []
         self.raises = False
+        self.fetched: list[str] = []
+        self.photo = b""
+        self.photo_raises = False
 
     def parse_incoming(self, raw: object) -> IncomingMessage | None:
         return None
@@ -55,7 +58,10 @@ class FakeAdapter:
         return self.ok
 
     async def fetch_photo(self, photo_ref: str) -> bytes:
-        return b""
+        self.fetched.append(photo_ref)
+        if self.photo_raises:
+            raise RuntimeError("download failed")
+        return self.photo
 
 
 def a_parse(name: str = "water", qty: float = 1) -> ParseResult:
@@ -202,6 +208,98 @@ async def test_the_reply_token_reaches_the_adapter(conn: sqlite3.Connection) -> 
 async def test_an_unconfigured_platform_is_skipped(conn: sqlite3.Connection) -> None:
     d = Dispatcher({}, a_deps())
     assert await d.dispatch(conn, tg_message()) is False
+
+
+# --- photo download (transport's job, not the handler's) -------------------
+
+
+def photo_message(event_id: str = "p-1") -> IncomingMessage:
+    return IncomingMessage(
+        platform=Platform.TELEGRAM,
+        platform_user_id="42",
+        kind=IncomingKind.PHOTO,
+        received_at=NOON_BKK,
+        photo_ref="file-abc",
+        event_id=event_id,
+    )
+
+
+def vision_deps(seen: list[bytes]) -> HandlerDeps:
+    def parse_photo(image: bytes, caption: str | None) -> ParseResult:
+        seen.append(image)
+        return a_parse("latte")
+
+    return HandlerDeps(
+        parse=lambda text: a_parse(),
+        link_base_url="https://link.example.com",
+        now=lambda: NOON_BKK,
+        parse_photo=parse_photo,
+    )
+
+
+@pytest.mark.asyncio
+async def test_the_transport_downloads_and_hands_bytes_to_vision(
+    conn: sqlite3.Connection,
+) -> None:
+    """The wiring this whole change exists for: fetch_photo is async and
+    per-platform, so the transport calls it and the sync handler receives the
+    bytes already downloaded."""
+    seen: list[bytes] = []
+    adapter = FakeAdapter(Platform.TELEGRAM)
+    adapter.photo = b"\xff\xd8jpeg"
+    d = Dispatcher({Platform.TELEGRAM: adapter}, vision_deps(seen))
+
+    await d.dispatch(conn, photo_message())
+
+    assert adapter.fetched == ["file-abc"]
+    assert seen == [b"\xff\xd8jpeg"]
+    assert conn.execute("SELECT COUNT(*) AS n FROM logs").fetchone()["n"] == 1
+
+
+@pytest.mark.asyncio
+async def test_no_download_happens_when_vision_is_off(
+    conn: sqlite3.Connection,
+) -> None:
+    """A text-only deployment must not pay for bytes it would discard."""
+    adapter = FakeAdapter(Platform.TELEGRAM)
+    d = Dispatcher({Platform.TELEGRAM: adapter}, a_deps())
+
+    await d.dispatch(conn, photo_message())
+
+    assert adapter.fetched == []
+    assert "can't read photos" in adapter.sent[0][1].text
+
+
+@pytest.mark.asyncio
+async def test_a_failed_download_replies_with_a_retry(
+    conn: sqlite3.Connection,
+) -> None:
+    seen: list[bytes] = []
+    adapter = FakeAdapter(Platform.TELEGRAM)
+    adapter.photo_raises = True
+    d = Dispatcher({Platform.TELEGRAM: adapter}, vision_deps(seen))
+
+    await d.dispatch(conn, photo_message())
+
+    assert seen == [], "vision should not run without bytes"
+    assert adapter.sent[0][1].text == handlers_retry_message()
+    assert conn.execute("SELECT COUNT(*) AS n FROM logs").fetchone()["n"] == 0
+
+
+@pytest.mark.asyncio
+async def test_text_messages_trigger_no_download(conn: sqlite3.Connection) -> None:
+    seen: list[bytes] = []
+    adapter = FakeAdapter(Platform.TELEGRAM)
+    d = Dispatcher({Platform.TELEGRAM: adapter}, vision_deps(seen))
+
+    await d.dispatch(conn, tg_message())
+    assert adapter.fetched == []
+
+
+def handlers_retry_message() -> str:
+    from hydration.handlers import RETRY_MESSAGE
+
+    return RETRY_MESSAGE
 
 
 # --- webhook routes --------------------------------------------------------

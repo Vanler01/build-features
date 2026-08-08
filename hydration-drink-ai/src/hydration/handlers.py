@@ -66,41 +66,44 @@ class PhotoParser(Protocol):
         ...
 
 
-class PhotoFetcher(Protocol):
-    """Downloads a photo's bytes from the platform that holds it."""
-
-    def __call__(self, photo_ref: str) -> bytes:
-        """Return the image bytes for a platform reference."""
-        ...
-
-
 @dataclass(frozen=True, slots=True)
 class HandlerDeps:
     """Everything the handler needs from the outside world.
 
-    ``parse_photo`` and ``fetch_photo`` are optional so a deployment can run
-    text-only: vision costs per image, and not every operator wants it on.
+    ``parse_photo`` is optional so a deployment can run text-only: vision costs
+    per image, and not every operator wants it on.
+
+    There is deliberately no photo *fetcher* here. Downloading is per-platform
+    and asynchronous, while this layer is synchronous, so a callable in this
+    dataclass could never bridge the two cleanly. The transport already holds
+    the right adapter and is already async, so it does the download and hands
+    the bytes in — transport does transport, the handler does logic.
     """
 
     parse: Parser
     link_base_url: str
     now: Callable[[], datetime] = day.utc_now
     parse_photo: PhotoParser | None = None
-    fetch_photo: PhotoFetcher | None = None
 
 
 def handle(
     conn: sqlite3.Connection,
     message: IncomingMessage,
     deps: HandlerDeps,
+    photo_bytes: bytes | None = None,
 ) -> list[OutgoingMessage]:
     """Route one incoming message and return the replies to send.
+
+    ``photo_bytes`` is supplied by the transport for photo messages, already
+    downloaded. None means either that vision is switched off or that the
+    download failed; the two are distinguished by whether ``deps.parse_photo``
+    is configured.
 
     Never raises: any unexpected failure becomes a plain retry message, because
     a stack trace in a chat window helps nobody and leaks internals.
     """
     try:
-        return _route(conn, message, deps)
+        return _route(conn, message, deps, photo_bytes)
     except Exception:  # noqa: BLE001 — the boundary; everything below may fail
         # Log the failure but never the message body (CLAUDE.md: log IDs,
         # timestamps and outcomes, never user content).
@@ -109,7 +112,10 @@ def handle(
 
 
 def _route(
-    conn: sqlite3.Connection, message: IncomingMessage, deps: HandlerDeps
+    conn: sqlite3.Connection,
+    message: IncomingMessage,
+    deps: HandlerDeps,
+    photo_bytes: bytes | None,
 ) -> list[OutgoingMessage]:
     user_id, created = users_mod.get_or_create_user(
         conn, message.platform, message.platform_user_id
@@ -119,7 +125,7 @@ def _route(
         return _command(conn, user_id, message, deps)
 
     if message.kind is IncomingKind.PHOTO:
-        return _log_photo(conn, user_id, message, deps)
+        return _log_photo(conn, user_id, message, deps, photo_bytes)
 
     if message.kind is IncomingKind.LOCATION:
         # Nearby places is Phase 6.
@@ -236,24 +242,31 @@ def _link(conn: sqlite3.Connection, user_id: str, platform: Platform, deps: Hand
 
 
 def _log_photo(
-    conn: sqlite3.Connection, user_id: str, message: IncomingMessage, deps: HandlerDeps
+    conn: sqlite3.Connection,
+    user_id: str,
+    message: IncomingMessage,
+    deps: HandlerDeps,
+    photo_bytes: bytes | None,
 ) -> list[OutgoingMessage]:
-    """Fetch, parse and log a drink photo.
+    """Parse and log a drink photo the transport has already downloaded.
 
-    The image bytes live in a local variable for the duration of this call and
-    are never written anywhere (CLAUDE.md rule 1).
+    The image bytes are passed in, used, and dropped. They are never written to
+    disk or the database (CLAUDE.md rule 1).
     """
-    if deps.parse_photo is None or deps.fetch_photo is None:
+    if deps.parse_photo is None:
         return [
             OutgoingMessage(
                 text="I can't read photos here — tell me what it was and I'll log it."
             )
         ]
 
+    if not photo_bytes:
+        # Vision is on, so the transport tried and the download failed.
+        return [OutgoingMessage(text=RETRY_MESSAGE)]
+
     try:
-        image = deps.fetch_photo(message.photo_ref or "")
-        parsed = deps.parse_photo(image, message.text)
-    except Exception as exc:  # noqa: BLE001 — download or vision failure reads the same
+        parsed = deps.parse_photo(photo_bytes, message.text)
+    except Exception as exc:  # noqa: BLE001 — any vision failure reads the same
         _LOG.warning("photo parse unavailable: %s", type(exc).__name__)
         return [OutgoingMessage(text=RETRY_MESSAGE)]
 

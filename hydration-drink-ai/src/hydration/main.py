@@ -67,13 +67,12 @@ def build_dispatcher(
             max_tokens=settings.parse_max_tokens,
         )
 
+    # No photo fetcher: the Dispatcher downloads through whichever adapter
+    # received the message, because that call is async and per-platform.
     deps = handlers.HandlerDeps(
         parse=parse,  # type: ignore[arg-type]
         link_base_url=settings.link_base_url,
         parse_photo=parse_photo,  # type: ignore[arg-type]
-        # Photo download is per-platform, so it is resolved at dispatch time
-        # rather than bound here.
-        fetch_photo=None,
     )
     return Dispatcher(adapters, deps)  # type: ignore[arg-type]
 
