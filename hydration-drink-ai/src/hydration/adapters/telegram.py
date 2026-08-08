@@ -77,6 +77,8 @@ class TelegramAdapter:
         platform_user_id = str(sender["id"])
 
         received_at = utc_now()
+        update_id = raw.get("update_id")
+        event_id = str(update_id) if update_id is not None else None
 
         if isinstance(message.get("location"), dict):
             location = message["location"]
@@ -88,6 +90,7 @@ class TelegramAdapter:
                 platform_user_id=platform_user_id,
                 kind=IncomingKind.LOCATION,
                 received_at=received_at,
+                event_id=event_id,
                 latitude=float(lat),
                 longitude=float(lon),
             )
@@ -105,6 +108,7 @@ class TelegramAdapter:
                 platform_user_id=platform_user_id,
                 kind=IncomingKind.PHOTO,
                 received_at=received_at,
+                event_id=event_id,
                 photo_ref=str(file_id),
                 text=message.get("caption") or None,
             )
@@ -120,6 +124,7 @@ class TelegramAdapter:
                 platform_user_id=platform_user_id,
                 kind=IncomingKind.COMMAND,
                 received_at=received_at,
+                event_id=event_id,
                 text=text,
                 command=command,
                 args=args or None,
@@ -130,6 +135,7 @@ class TelegramAdapter:
             platform_user_id=platform_user_id,
             kind=IncomingKind.TEXT,
             received_at=received_at,
+            event_id=event_id,
             text=text,
         )
 

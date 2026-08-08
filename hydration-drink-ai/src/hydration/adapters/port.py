@@ -52,6 +52,9 @@ class IncomingMessage:
     latitude: float | None = None
     longitude: float | None = None
     reply_token: str | None = None
+    # The platform's own id for this delivery (Telegram update_id, LINE
+    # webhookEventId). Used to reject redeliveries — see core.events.
+    event_id: str | None = None
 
     def __post_init__(self) -> None:
         """Reject shapes that cannot be handled downstream."""

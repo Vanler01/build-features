@@ -104,6 +104,7 @@ class LineAdapter:
             return None
 
         reply_token = raw.get("replyToken") or None
+        event_id = raw.get("webhookEventId") or None
         received_at = utc_now()
         kind = message.get("type")
 
@@ -119,6 +120,7 @@ class LineAdapter:
                 latitude=float(lat),
                 longitude=float(lon),
                 reply_token=reply_token,
+                event_id=event_id,
             )
 
         if kind == "image":
@@ -132,6 +134,7 @@ class LineAdapter:
                 received_at=received_at,
                 photo_ref=str(message_id),
                 reply_token=reply_token,
+                event_id=event_id,
             )
 
         if kind != "text":
@@ -153,6 +156,7 @@ class LineAdapter:
                 command=head.lower(),
                 args=rest.strip() or None,
                 reply_token=reply_token,
+                event_id=event_id,
             )
 
         return IncomingMessage(
@@ -162,6 +166,7 @@ class LineAdapter:
             received_at=received_at,
             text=text,
             reply_token=reply_token,
+            event_id=event_id,
         )
 
     def iter_events(self, body: object) -> list[IncomingMessage]:

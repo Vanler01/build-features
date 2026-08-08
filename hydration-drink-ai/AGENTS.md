@@ -8,7 +8,16 @@ Spec: `REQUIREMENTS.md`. Approved plan: `~/.claude/plans/gentle-weaving-candy.md
 pip3 install -r requirements.txt --break-system-packages
 python3 -m pytest -q      # from hydration-drink-ai/
 ruff check .
+
+python3 -m hydration.main seed    # load the drink catalog (no API key needed)
+python3 -m hydration.main poll    # local dev: Telegram long polling + reminders
+python3 -m hydration.main serve   # deployed: webhooks + reminders
+python3 tools/source_catalog.py --dry-run   # what nutrition is still unsourced
 ```
+
+`serve` needs `TELEGRAM_WEBHOOK_SECRET` — invent one, then pass it to
+`setWebhook` as `secret_token`. Telegram echoes it back on every delivery, and
+the route rejects anything without it.
 
 Adapters call the Telegram and LINE HTTP APIs through `httpx` directly, not
 through the vendor SDKs — `MessagingPort` already owns the handler model, and
