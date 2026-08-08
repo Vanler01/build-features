@@ -38,3 +38,9 @@ compass_artifact_*.md
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
+
+# Android / Gradle build output (the SDK path is machine-specific)
+**/android/.gradle/
+**/android/app/build/
+**/android/local.properties
+*.apk
