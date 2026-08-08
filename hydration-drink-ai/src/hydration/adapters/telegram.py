@@ -135,7 +135,13 @@ class TelegramAdapter:
 
     # -- outbound -----------------------------------------------------------
 
-    async def send(self, platform_user_id: str, message: OutgoingMessage) -> bool:
+    async def send(
+        self,
+        platform_user_id: str,
+        message: OutgoingMessage,
+        *,
+        reply_token: str | None = None,  # noqa: ARG002 — LINE-only; see MessagingPort
+    ) -> bool:
         """Deliver a message. Returns whether every part was accepted.
 
         Never raises on transport failure: a reminder that fails for one user

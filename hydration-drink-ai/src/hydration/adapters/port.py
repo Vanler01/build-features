@@ -105,8 +105,21 @@ class MessagingPort(Protocol):
         """Normalize a platform update. Returns None for updates we ignore."""
         ...
 
-    async def send(self, platform_user_id: str, message: OutgoingMessage) -> bool:
-        """Deliver a message. Returns whether it was accepted."""
+    async def send(
+        self,
+        platform_user_id: str,
+        message: OutgoingMessage,
+        *,
+        reply_token: str | None = None,
+    ) -> bool:
+        """Deliver a message. Returns whether it was accepted.
+
+        ``reply_token`` exists for platforms that bill unsolicited messages
+        differently from answers. On LINE, replying to something the user just
+        sent is free and pushing is metered at 300/month, so passing the token
+        from the incoming message is the difference between free and paid.
+        Telegram has no such split and ignores it.
+        """
         ...
 
     async def fetch_photo(self, photo_ref: str) -> bytes:
