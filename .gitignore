@@ -6,6 +6,25 @@ en-th-word-swap/cache/
 num-to-text/cache/
 morse-code/cache/
 old_ver/
+
+# AI projects — secrets and build artifacts (never commit)
+.env
+.env.local
+.env.production
+*/.env
+*/.env.local
+*/.env.production
+node_modules/
+dist/
+*.sqlite
+*.sqlite3
+*.db
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+
 .claude/*
 !.claude/settings.json
 !.claude/agents/

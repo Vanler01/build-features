@@ -1,6 +1,11 @@
 # AGENTS.md — build-features (shared)
 
-Shared conventions for both daemons. Per-project triggers, test rules, and
+**Scope: the macOS daemons only.** The AI-product projects
+(hydration-drink-ai, slang-translator-ai, job-prep-ai, numeral-translator-ai)
+have their own conventions in `AI_PROJECTS.md` and their own agents listed in
+each project's `AGENTS.md` — nothing in this file applies to them.
+
+Shared conventions for the daemons. Per-project triggers, test rules, and
 file-ownership tables live in each submodule's own `AGENTS.md`.
 
 ## Project Overview
@@ -54,3 +59,9 @@ documented in the root `CLAUDE.md`.
 
 Domain-specific agents (`thai-lang-validator`, `num-converter-validator`) are
 documented in their respective submodule `AGENTS.md`.
+
+**Do not use the agents above on the AI-product projects.** `security-reviewer`
+in particular greps for keystroke logging and CGEventTap misuse; run against a
+Telegram bot it will report a clean pass that means nothing. Each AI project has
+its own four agents — see `AI_PROJECTS.md` for the naming convention and the
+project's `AGENTS.md` for the table.

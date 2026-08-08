@@ -1,14 +1,29 @@
-# build-features — macOS Background Daemons
+# build-features — macOS Daemons + AI Products
 
-Monorepo umbrella for Python background daemons on macOS. Each program is an
-independent git submodule with its own repo, tests, and `cache/`.
+Monorepo umbrella holding **two classes of project**.
+
+**Class 1 — macOS background daemons** (Python, PyObjC). Each is an independent
+git submodule with its own repo, tests, and `cache/`. **Everything in this file
+below applies to class 1 only.**
 
 - **en-th-word-swap** — keyboard layout fix (EN↔TH mistype correction)
 - **num-to-text** — number-to-words floating overlay
 - **morse-code** — text ↔ Morse converter panel (Option+M hotkey)
 
-> Per-project rules live in each submodule's own `CLAUDE.md`. When working
-> inside a submodule, Claude Code loads this root file **and** the submodule's
+**Class 2 — server-side AI products** (Claude API + Telegram bots). Plain
+directories, not submodules. Rules live in **`AI_PROJECTS.md`** — read that
+instead of this file when working in one of them.
+
+- **hydration-drink-ai** — drink/hydration tracker (bot → mobile app)
+- **slang-translator-ai** — Gen Z/Alpha slang decoder (bot → Chrome extension)
+- **job-prep-ai** — intern/first-jobber job search + prep (privacy-minimal)
+- **numeral-translator-ai** — universal numeral & number-word translator
+
+None of the class-1 rules (CGEventTap, NSPanel, Accessibility, `_synth_pending`,
+`cache/`) apply to class 2, and vice versa.
+
+> Per-project rules live in each project's own `CLAUDE.md`. When working
+> inside one, Claude Code loads this root file **and** the project's
 > file (closer file overrides). This root file holds only what is **shared**.
 
 ## Stack (shared)
@@ -39,11 +54,22 @@ independent git submodule with its own repo, tests, and `cache/`.
 - `git push` + merge to main are done by the user (see `.claude/settings.json`)
 
 ## Project Paths
+
+Class 1 — daemons (submodules):
 - en-th-word-swap: ~/build-features/en-th-word-swap/  (rules: its own CLAUDE.md)
 - num-to-text:     ~/build-features/num-to-text/      (rules: its own CLAUDE.md)
 - morse-code:      ~/build-features/morse-code/       (rules: its own CLAUDE.md)
+
+Class 2 — AI products (plain dirs, spec-only for now):
+- hydration-drink-ai:     ~/build-features/hydration-drink-ai/
+- slang-translator-ai:    ~/build-features/slang-translator-ai/
+- job-prep-ai:            ~/build-features/job-prep-ai/
+- numeral-translator-ai:  ~/build-features/numeral-translator-ai/
+
+  Shared rules: AI_PROJECTS.md. Per-project rules: each dir's own CLAUDE.md.
 
 Note: en-th-word-swap and num-to-text monitor/inject keystrokes system-wide;
 morse-code uses CGEventTap only for its Option+M hotkey (no injection).
 
 @AGENTS.md
+@AI_PROJECTS.md
