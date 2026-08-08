@@ -18,17 +18,22 @@ and wants to understand it. That includes crude and offensive words: a user who
 doesn't know a slur is being used against them is exactly who this tool should
 help. So the policy is "explain accurately, don't endorse", not "refuse".
 
-**The NSFW question is deliberately open** (`REQUIREMENTS.md` §12: show flagged
-content by default, or behind a tap?). Until the user settles it, entries are
-**marked** and the bot decides what to show — so the choice
-stays reversible. Flag any code that hard-deletes entries on the basis of
-content, because that decision can't be undone later without a re-scrape.
+**The NSFW question is settled** (`REQUIREMENTS.md` §12): the audience is
+everybody, so the answer is **flag and show, never hide**. Somebody asked what a
+word means; refusing to say is the one failure that breaks this for every reader
+at once, and most sharply for the person who was called something and wants to
+know what it was.
+
+So you are checking two directions, not one. Content that is *suppressed* is a
+finding. Content that arrives *unflagged* is also a finding.
 
 When invoked:
 
-1. **Flagging exists and is structured.** Verify entries carry content flags
-   (e.g. `sexual`, `vulgar`, `slur`, `violent`) rather than being silently
-   dropped, and that the flags are separate from `confidence`.
+1. **Flagging exists, is structured, and is shown.** Verify entries carry
+   content flags (`sexual`, `vulgar`, `slur`, `violent`), that the flags are
+   separate from `confidence`, and that the flag is **rendered beside the
+   definition** rather than used to withhold it. A definition suppressed on the
+   basis of a flag is a **HIGH** finding — see §12.
    ```bash
    grep -rn "nsfw\|explicit\|flag\|offensive\|slur" --include="*.ts" slang-translator-ai/src/
    ```
@@ -48,15 +53,21 @@ When invoked:
    entry. Verify confidence reaches the user in some form, and that
    `slang-cache-validator`'s rule holds: nothing is auto-promoted to verified.
 
-4. **Wording of definitions.** Definitions are neutral and short. Flag output
-   that editorializes, moralizes, or adds warnings the user didn't ask for —
-   the tool explains, it doesn't lecture. One content flag on the reply is
-   enough; a paragraph of caveats is not.
+4. **Wording: plain English, for a reader with no context.** The audience is
+   everybody, which includes people reading in a second language and people who
+   know none of the adjacent slang. Verify definitions:
+   - contain no slang inside the explanation ("delulu = deluded, usually said
+     half-jokingly", not "when you're lowkey unhinged about your situationship")
+   - do not perform the register they are describing
+   - use short sentences and avoid "iykyk"-style shorthand
+   - do not editorialize, moralize, or add warnings nobody asked for — one flag
+     is enough; a paragraph of caveats is not
 
-5. **Age/context appropriateness.** Gen Alpha slang means some users are
-   children. Verify sexual-content flags are actually applied and that the bot
-   has a plausible place to gate them if the user later wants that — without
-   assuming a gate that hasn't been asked for.
+5. **Children are readers too, which is why flags must be applied.** Gen Alpha
+   slang means some readers are young. That is a reason to verify the flags are
+   actually set on every entry that needs one — **not** a reason to withhold
+   meanings, and not a reason for an age gate, which cannot be verified and is
+   explicitly not in the design.
 
 6. **The Claude path is now the main path, not a fallback.** Every new entry
    comes from it, so the prompt must carry the full policy: neutral descriptive
@@ -72,7 +83,7 @@ When invoked:
 Report format:
 - **CRITICAL** — slur with a usage example, endorsing wording, irreversible deletion of flagged content
 - **HIGH** — missing flags, the Claude prompt missing the slur rule, unverified served as certain
-- **MEDIUM** — editorializing output, extension rendering unflagged rows
+- **MEDIUM** — editorializing output, slang used inside a definition, extension rendering unflagged rows
 - **PASS** — category clean
 
 For any finding, quote the offending definition or code with `file:line`, and

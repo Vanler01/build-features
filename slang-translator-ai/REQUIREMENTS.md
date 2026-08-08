@@ -190,9 +190,11 @@ policy is **explain accurately, do not endorse**, not "refuse".
 - **Slurs** are defined neutrally and descriptively — "a derogatory term for X"
   — and **never with a usage example**, since an example models using it. This
   is the one hard rule.
-- Entries carry content flags (`sexual`, `vulgar`, `slur`, `violent`) rather
-  than being deleted, so the display decision stays reversible.
-- Definitions are short and neutral. The tool explains; it does not lecture.
+- Entries carry content flags (`sexual`, `vulgar`, `slur`, `violent`). The flag
+  is **shown next to the definition, not used to hide it** — see §12. Somebody
+  asked; the answer is the product.
+- Definitions are short, neutral and in plain English. The tool explains; it
+  does not lecture, and it does not perform the register it is describing.
 
 **Gen Alpha slang means some users are children.** That is a reason the flags
 must actually be applied, and a reason the audience question below matters.
@@ -250,15 +252,47 @@ Aliases and variants, regional senses, most-looked-up prioritisation.
 
 ---
 
-## 12. Open questions
+## 12. Audience: everybody, non-specific
 
-- **Who is this for?** A parent, a teacher, a non-native speaker, or idle
-  curiosity are four different products — it decides tone, the NSFW default and
-  whether the extension is even the right V2. This is the one worth answering
-  before Phase 1.
-- Show flagged content by default, or behind a tap?
+**Settled.** This is a dictionary, and a dictionary does not have a target
+demographic. A parent reading their kid's messages, a teacher marking an essay,
+a non-native speaker reading anything at all, and someone who is merely curious
+all want the same thing from it: what does this word mean.
+
+That is a real decision, not a deferral, and three things follow from it.
+
+**Plain language, no in-group register.** Definitions are written for a reader
+with no context whatsoever. No slang inside the explanation, no "iykyk", no
+assuming they know an adjacent term. `"delulu" = deluded, usually said
+half-jokingly about someone's unrealistic hopes` — not `"delulu" = when you're
+being lowkey unhinged about your situationship`. The second is funnier and
+useless to most of the people asking. Short sentences and simple English also
+serve the non-native reader, who is a large part of "everybody".
+
+**Flag visibly; never hide, never embellish.** Somebody asked what a word
+means, and refusing to say is the single failure that breaks this for every
+audience at once — most sharply for the person who was called something and
+wants to know what it was. So the definition always appears. What changes is
+the framing around it: a short label (`vulgar`, `sexual`, `slur`) sits with the
+entry so nobody is ambushed, the wording stays clinical rather than colourful,
+and slurs carry no usage example. That resolves the old "filter or flag"
+question — **flag, and show**.
+
+**No age gate.** It cannot be verified and would not help; the flags carry the
+information a reader needs to decide for themselves. Gen Alpha slang means some
+readers are children, which is a reason the flags must actually be applied, not
+a reason to withhold meanings.
+
+It also confirms the context-menu extension. A context menu works identically
+for a parent reading a text, a teacher reading an essay, and a reader on a site
+nobody thought to integrate with — which a per-site content script would not.
+
+## 13. Open questions
+
 - Personal use only, or shared with friends? Sharing changes the extension's
-  publishing and ToS position.
+  publishing and ToS position. Can wait until Phase 3.
+- Do regional and community-specific senses need their own rows, or a note on
+  the sense? Phase 4.
 
 Stack per `../AI_PROJECTS.md`: Node 20+ / TypeScript, grammY,
 `@anthropic-ai/sdk`, SQLite.

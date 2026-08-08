@@ -63,24 +63,33 @@ invoking a lookup on their own selection.
     is aimed at them is exactly who this should help.
 11. **Slurs are defined neutrally and never with a usage example.** An example
     models using it. This is the one hard rule in the content policy.
-12. **Flag, don't delete.** Entries carry `sexual` / `vulgar` / `slur` /
-    `violent` flags so the display decision stays reversible. The NSFW default
-    is an open question in `REQUIREMENTS.md` — don't settle it in code.
-13. **Gen Alpha slang means some users are children.** That is why the flags
-    have to actually be applied.
+12. **Flag and show; never hide.** Entries carry `sexual` / `vulgar` / `slur` /
+    `violent` flags, and the flag is displayed *beside* the definition rather
+    than used to suppress it. Somebody asked what a word means — refusing to
+    say is the one failure that breaks this for every reader at once, most
+    sharply for the person who was called something. Settled in
+    `REQUIREMENTS.md` §12.
+13. **Write for a reader with no context.** The audience is everybody, so
+    definitions use plain English and contain no slang themselves. No "iykyk",
+    no assuming an adjacent term is known, no performing the register being
+    described. Short sentences; a large part of "everybody" is reading in a
+    second language.
+14. **Gen Alpha slang means some readers are children.** That is a reason the
+    flags must actually be applied — not a reason to withhold meanings, and not
+    a reason for an age gate that cannot be verified anyway.
 
 ### The extension
-14. **`contextMenus` + `activeTab` only.** No content script, no
+15. **`contextMenus` + `activeTab` only.** No content script, no
     `host_permissions` list, never `<all_urls>`.
-15. **Only the selected term leaves the browser.** Never the page, the
+16. **Only the selected term leaves the browser.** Never the page, the
     surrounding conversation, the URL, or a username.
-16. **No API key in the extension bundle.** It talks to your backend; the
+17. **No API key in the extension bundle.** It talks to your backend; the
     backend holds keys.
-17. **Unpublished and personal-use** until each target platform's terms have
+18. **Unpublished and personal-use** until each target platform's terms have
     been reviewed individually.
 
 ### Privacy
-18. **`lookups` stores term + timestamp only.** What someone looks up is
+19. **`lookups` stores term + timestamp only.** What someone looks up is
     sensitive — a teenager checking a sexual term, or someone checking a slur
     aimed at them. Never the surrounding message, page or URL. Short retention,
     aggregate counts once reviewed.
