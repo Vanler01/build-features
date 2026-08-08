@@ -1,56 +1,95 @@
 # slang-translator-ai — project rules
 
-Decodes Gen Z / Gen Alpha slang: short definition + example, backed by a scraped
-vocabulary database so it stays current. Telegram bot MVP → Chrome MV3 extension
-V2. Full spec: `REQUIREMENTS.md`.
+Decodes Gen Z / Gen Alpha slang: short definition + example. Telegram bot →
+Chrome context-menu extension. Full spec: `REQUIREMENTS.md`.
 
-**Status: spec-only.** No code yet. Read `REQUIREMENTS.md` and the open questions
-at the bottom of it before proposing an implementation.
+**Status: spec-only.** No code yet.
 
 Shared rules for this project class: `../AI_PROJECTS.md`. This file holds only
 what is specific to slang-translator-ai.
 
 ## Stack
 - Node 20+ / TypeScript (`strict: true`), `grammY`, `@anthropic-ai/sdk`, SQLite
-- V2: Chrome extension, Manifest V3, content script + host permissions
-- TypeScript is deliberate: bot, scraper, and extension share one language
+- V2: Chrome extension, Manifest V3, `contextMenus` + `activeTab`
+
+## The two decisions everything else follows from
+
+Both were verified against current terms of service, and both are recorded in
+`REQUIREMENTS.md` §0 so they are not quietly reversed later.
+
+**There is no scraper.** Urban Dictionary's ToS requires express permission for
+API access; the "unofficial API" is a third party scraping them, so using it
+does not route around anything. The vocabulary store is a **cache of Claude's
+answers**, seeded by hand and grown from real lookups.
+
+**The extension is a context menu, not a content script.** Discord's ToS
+prohibits scraping their service by any automated means, which is what a content
+script reading messages is. Selecting text and right-clicking is the user
+invoking a lookup on their own selection.
 
 ## Critical rules
-1. **Database first, Claude second.** Every lookup hits the local `vocabulary`
-   table before it hits the API. Claude is the fallback for genuinely unseen
-   terms, and those go into `pending_terms` for review — not silently into
-   `vocabulary` as if verified.
-2. **Define, don't rewrite.** Given a whole sentence, the bot identifies the
-   slang word(s) and defines those. It does not paraphrase or "translate" the
-   user's message.
-3. **Scraped text is untrusted input.** Urban Dictionary entries are
-   user-submitted and go straight into Claude prompts for normalization — a
-   classic injection surface. Fence scraped content clearly in the prompt and
-   never let it be read as instruction.
-4. **Filtering is a policy decision, not a default.** The open question of
-   NSFW/offensive entries (flag vs. exclude) is unsettled — until it's settled,
-   the pipeline marks entries rather than silently dropping them, so the choice
-   stays reversible. Slurs are the exception: defined neutrally as "this is a
-   slur against X", never endorsed, never with a usage example.
-5. **The extension is personal-use, unpublished.** Reading chat content on
-   Discord/Instagram/TikTok may violate their ToS if distributed. No Chrome Web
-   Store listing without a per-platform ToS review first.
-6. **The extension reads the page; it never ships the page anywhere.** Term
-   detection runs against the local vocabulary list in the extension. Only an
-   unrecognized single *term* may go to the backend — never message text,
-   never usernames, never page context.
-7. **No `<all_urls>`.** `host_permissions` lists specific domains, and the
-   per-site toggle actually gates the content script — off means not injected.
+
+### The store
+1. **No scraper. Ever.** Not Urban Dictionary, not glossary sites, not a
+   "just this once" fetch. A human reading a glossary and typing entries in is
+   research; a scheduled job is not. Any network call in a data-collection path
+   is a defect.
+2. **A Claude-sourced entry is never auto-promoted to verified.** It may be
+   *served* while unverified — that is the point of the cache — but `verified`
+   is set by a person. Auto-promotion launders a guess into a fact.
+3. **`source` names the real origin**: `manual_seed`, `claude`, or
+   `user_report`. Never a generic value.
+4. **Confidence decays with `last_seen`.** Slang shifts meaning while keeping
+   its spelling; an entry nobody has touched in months is a re-verification
+   candidate, not a fact.
+
+### Answering
+5. **Store first, Claude second.** A lookup that calls Claude before checking
+   the store is a cost and latency bug.
+6. **Define, don't rewrite.** Given a sentence, name the slang in it and define
+   those words. Never paraphrase the user's message.
+7. **"Nothing unusual here" is a correct answer.** Most slang words are also
+   ordinary English — `bet`, `mid`, `cap`, `fire`, `sick`, `slaps`. A system
+   that strains to find slang in a plain sentence is worse than no system.
+   Over-flagging is the failure mode that kills this product.
+8. **Terms have multiple senses.** `cap` is lie / hat / limit. Lead with the
+   sense that fits the context and mention the others in one line.
+9. **Scraped-text injection is gone, but user text is not.** Message text still
+   reaches prompts. Fence it and constrain output with a schema.
+
+### Content
+10. **Explain accurately, don't endorse.** The purpose is comprehension,
+    including of crude and offensive words. Someone who does not realise a slur
+    is aimed at them is exactly who this should help.
+11. **Slurs are defined neutrally and never with a usage example.** An example
+    models using it. This is the one hard rule in the content policy.
+12. **Flag, don't delete.** Entries carry `sexual` / `vulgar` / `slur` /
+    `violent` flags so the display decision stays reversible. The NSFW default
+    is an open question in `REQUIREMENTS.md` — don't settle it in code.
+13. **Gen Alpha slang means some users are children.** That is why the flags
+    have to actually be applied.
+
+### The extension
+14. **`contextMenus` + `activeTab` only.** No content script, no
+    `host_permissions` list, never `<all_urls>`.
+15. **Only the selected term leaves the browser.** Never the page, the
+    surrounding conversation, the URL, or a username.
+16. **No API key in the extension bundle.** It talks to your backend; the
+    backend holds keys.
+17. **Unpublished and personal-use** until each target platform's terms have
+    been reviewed individually.
+
+### Privacy
+18. **`lookups` stores term + timestamp only.** What someone looks up is
+    sensitive — a teenager checking a sexual term, or someone checking a slur
+    aimed at them. Never the surrounding message, page or URL. Short retention,
+    aggregate counts once reviewed.
 
 ## Data retention
-- `vocabulary`, `pending_terms` — permanent (the product).
-- `lookups` — term + timestamp only, to prioritize seeding. **Never the
-  surrounding message.**
-- Extension: no page content persisted anywhere, ever.
-
-## Scope guard
-The scraper is a **scheduled** job (~weekly), not a per-query fetch. If a
-lookup path ever calls Urban Dictionary live, that's a bug.
+- `terms` / `senses` — permanent; the product.
+- `lookups` — term and timestamp, short window, then aggregate.
+- `review_queue` — until reviewed.
+- Page content, message bodies, URLs — never stored anywhere.
 
 ## Agents
 See `AGENTS.md` in this directory. Use `slang-*` agents only — the daemon-class

@@ -45,15 +45,18 @@ numeral-translator-ai this is forced (`num2words` has no real JS equivalent).
    real error) and a soft one elsewhere.
 5. **User content is not training data and not logs.** Never log message bodies,
    photos, resume text, or locations. Log IDs, timestamps, and outcomes.
-6. **Treat all external text as untrusted input.** Job listings, scraped slang
-   definitions, and Urban Dictionary entries flow into Claude prompts — they are
-   an injection surface. Never let fetched text reach a prompt in a position
-   where it can be read as an instruction.
+6. **Treat all external text as untrusted input.** Job listings and any other
+   fetched text flow into Claude prompts — they are an injection surface. Never
+   let fetched text reach a prompt where it can be read as an instruction. User
+   message text counts too, on every project.
 7. **Cache external API results.** Google Places/Directions, Adzuna, and USDA all
    have free-tier ceilings; an uncached call per user action will blow them.
 8. **Scrape only what's permitted.** Check `robots.txt` and ToS before adding any
    scraper, honour a rate limit, and set a real User-Agent. Where an official API
    exists (JobThai, Open Food Facts), use it instead of scraping.
+   Applying this honestly has already removed two planned scrapers:
+   slang-translator-ai now caches Claude's answers instead of scraping Urban
+   Dictionary, whose ToS forbids it. Read the ToS before the code, not after.
 
 ---
 
@@ -76,7 +79,7 @@ same commit. Never put a real value in the example file.
 - Read the `claude-api` skill before writing any Claude call — model IDs,
   pricing, and structured-output syntax change; don't write them from memory.
 - Default model: Sonnet for parsing/classification/ranking, Haiku for
-  high-volume cheap passes (entry normalization, slang detection). Reserve Opus
+  high-volume cheap passes (slang detection, classification). Reserve Opus
   for nothing here yet.
 - Set `max_tokens` deliberately. Structured extraction needs far less than the
   default anyone copies from a tutorial.
