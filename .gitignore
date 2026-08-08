@@ -44,3 +44,6 @@ compass_artifact_*.md
 **/android/app/build/
 **/android/local.properties
 *.apk
+
+# TypeScript build output
+**/dist/

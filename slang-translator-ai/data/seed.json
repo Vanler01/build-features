@@ -1,0 +1,923 @@
+[
+  {
+    "term": "cap",
+    "aliases": [
+      "no cap",
+      "nocap",
+      "🧢"
+    ],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "A lie, or exaggeration.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "That's cap, he never said that."
+      },
+      {
+        "definition": "A hat.",
+        "confidence": "medium",
+        "content_flags": [],
+        "example": "Nice cap."
+      },
+      {
+        "definition": "An upper limit.",
+        "confidence": "medium",
+        "content_flags": [],
+        "example": "There's a cap on how many you can buy."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "bet",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Agreement, or acknowledgement. Roughly \"okay\" or \"sure\".",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "\"Meet at 7?\" \"Bet.\""
+      },
+      {
+        "definition": "A wager. The ordinary English sense.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "I'll bet you five pounds."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "mid",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Mediocre. Not bad, just unremarkable — usually a mild insult.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "The film was mid."
+      },
+      {
+        "definition": "The middle of something. The ordinary English sense.",
+        "confidence": "medium",
+        "content_flags": [],
+        "example": "mid-July"
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "fire",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Excellent.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "That track is fire."
+      },
+      {
+        "definition": "Combustion. The ordinary English sense.",
+        "confidence": "high",
+        "content_flags": []
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "sick",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Excellent, impressive.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "That trick was sick."
+      },
+      {
+        "definition": "Unwell. The ordinary English sense.",
+        "confidence": "high",
+        "content_flags": []
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "slaps",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Is very good — said mostly of music or food.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "This song slaps."
+      },
+      {
+        "definition": "Strikes with an open hand. The ordinary English sense.",
+        "confidence": "high",
+        "content_flags": []
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "cooked",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "In serious trouble, or exhausted beyond recovery.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "I didn't revise, I'm cooked."
+      },
+      {
+        "definition": "Prepared with heat. The ordinary English sense.",
+        "confidence": "high",
+        "content_flags": []
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "cook",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "To perform well when left alone — usually as \"let him cook\".",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He's onto something, let him cook."
+      },
+      {
+        "definition": "To prepare food. The ordinary English sense.",
+        "confidence": "high",
+        "content_flags": []
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "glizzy",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "A hot dog.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He ate four glizzies."
+      },
+      {
+        "definition": "A handgun. Regional, mainly US.",
+        "confidence": "medium",
+        "content_flags": [
+          "violent"
+        ]
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "rizz",
+    "aliases": [
+      "rizzler",
+      "rizzed up"
+    ],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Charm, especially skill at flirting.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He's got mad rizz."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "skibidi",
+    "aliases": [],
+    "register": "genalpha",
+    "senses": [
+      {
+        "definition": "Absurd or nonsensical. From the Skibidi Toilet videos. Often means little on its own and is used for comic effect.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "That's so skibidi."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "gyat",
+    "aliases": [
+      "gyatt"
+    ],
+    "register": "genalpha",
+    "senses": [
+      {
+        "definition": "An exclamation of surprise, usually at someone's body.",
+        "confidence": "high",
+        "content_flags": [
+          "sexual"
+        ]
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "delulu",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Deluded. Usually said half-jokingly about someone's unrealistic hopes.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "She's being delulu about that job."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "sigma",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Independent and self-assured, outside the usual social hierarchy. Often used ironically.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He's on his sigma grind."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "aura",
+    "aliases": [],
+    "register": "genalpha",
+    "senses": [
+      {
+        "definition": "Presence or coolness, counted as points gained or lost.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He tripped on stage — minus a thousand aura."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "bussin",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Very good, said mostly of food.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "This food is bussin."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "ate",
+    "aliases": [
+      "left no crumbs"
+    ],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Did something excellently. Often \"ate and left no crumbs\".",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "She ate that performance."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "npc",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Someone acting without independent thought, as though following a script. From non-player characters in games.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "The whole crowd was being NPCs."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "it's giving",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "It resembles or evokes something.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "It's giving early 2000s."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "touch grass",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Go outside and disconnect — said to someone too invested in something online.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "Mate, touch grass."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "ohio",
+    "aliases": [],
+    "register": "genalpha",
+    "senses": [
+      {
+        "definition": "Weird, broken or bad. An in-joke about the US state, not a real comment on it.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "That was an Ohio play."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "fanum tax",
+    "aliases": [],
+    "register": "genalpha",
+    "senses": [
+      {
+        "definition": "Taking a portion of someone else's food. From a streamer's habit.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He fanum taxed my chips."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "rent free",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Occupying your thoughts constantly and unwelcomely.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "That advert lives rent free in my head."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "slay",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "To do something impressively well.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "You slayed that interview."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "sus",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Suspicious. Popularised by the game Among Us.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He's acting sus."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "ick",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "A sudden, often irrational turn-off about someone.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He chewed loudly and I got the ick."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "glaze",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "To praise someone excessively.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "Stop glazing, he's not that good."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "lowkey",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Slightly, or secretly.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "I lowkey want to go home."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "highkey",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Very, or openly — said when someone is not hiding how strongly they feel.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "I highkey love this."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "based",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Admirably unapologetic about an opinion, regardless of whether others agree.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "Saying that out loud was based."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "cringe",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Embarrassing to witness.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "That speech was cringe."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "mog",
+    "aliases": [
+      "mogging",
+      "mogged"
+    ],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "To visibly outshine someone, usually in looks.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He got mogged by his own brother."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "looksmaxxing",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Deliberately optimising one's appearance. Sometimes a joke, sometimes not.",
+        "confidence": "medium",
+        "content_flags": []
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "huzz",
+    "aliases": [],
+    "register": "genalpha",
+    "senses": [
+      {
+        "definition": "Girls or women. Mildly derogatory and mostly used jokingly among boys.",
+        "confidence": "medium",
+        "content_flags": [
+          "vulgar"
+        ]
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "yap",
+    "aliases": [
+      "yapping",
+      "yapper"
+    ],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "To talk at length, usually more than anyone wants.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He's been yapping for an hour."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "side eye",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "A sceptical or disapproving look.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "That excuse gets a side eye."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "green flag",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "A sign that someone is a good partner or person.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He texts back — green flag."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "red flag",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "A warning sign about someone.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He's rude to waiters — red flag."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "beige flag",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "A quirky, harmless trait that is neither good nor bad.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He names his plants — beige flag."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "situationship",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "A romantic relationship that has not been defined.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "They're not dating, it's a situationship."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "simp",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Someone thought to be excessively attentive to a romantic interest. Usually an insult, often unfair.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "Stop simping."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "opp",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "An opponent or enemy.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "Don't talk to the opps."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "drip",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Stylish clothing.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "That's serious drip."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "hits different",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Is noticeably better in a particular context.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "Cold water hits different after a run."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "era",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "A phase someone is deliberately in.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "I'm in my quiet era."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "main character",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Behaving as though one is the protagonist — sometimes admiring, sometimes mocking.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "She's having a main character moment."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "pookie",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "An affectionate nickname for a partner or close friend.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "Hi pookie."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "crash out",
+    "aliases": [
+      "crashing out"
+    ],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "To lose composure, or react badly and publicly.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "He's about to crash out over a game."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "ragebait",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Content made deliberately to provoke an angry reaction.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "Don't reply, it's ragebait."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "brainrot",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Low-quality online content, or the dulled feeling of consuming too much of it.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "That video is pure brainrot."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "unc",
+    "aliases": [
+      "unc status"
+    ],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "An older person, or someone young acting old. Short for uncle.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "Unc is asleep by nine."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "no shot",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "No chance — an expression of disbelief.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "No shot he said that."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "thirst trap",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "A post made mainly to attract attention to one's appearance.",
+        "confidence": "high",
+        "content_flags": [
+          "sexual"
+        ]
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "gooning",
+    "aliases": [],
+    "register": "genalpha",
+    "senses": [
+      {
+        "definition": "Prolonged sexual self-stimulation. Explicit; included because it is commonly encountered and often misunderstood by adults who hear it.",
+        "confidence": "medium",
+        "content_flags": [
+          "sexual"
+        ]
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "67",
+    "aliases": [
+      "six seven"
+    ],
+    "register": "genalpha",
+    "senses": [
+      {
+        "definition": "A number used as a punchline with no fixed meaning, from a song and the memes around it. Saying it is the joke.",
+        "confidence": "medium",
+        "content_flags": []
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "chat",
+    "aliases": [],
+    "register": "both",
+    "senses": [
+      {
+        "definition": "The audience, addressed directly — borrowed from livestreaming.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "Chat, is this real?"
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  }
+]
