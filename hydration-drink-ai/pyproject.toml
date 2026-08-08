@@ -1,0 +1,32 @@
+[project]
+name = "hydration-drink-ai"
+version = "0.1.0"
+description = "Drink and hydration tracker: Telegram/LINE bots, app backend, home-screen widget"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",   # pycodestyle, pyflakes
+    "I",             # import sorting
+    "UP",            # pyupgrade
+    "B",             # bugbear
+    "ANN",           # type annotations required (AGENTS.md style rule)
+    "G",             # no f-strings in logging calls (AGENTS.md style rule)
+    "E722",          # no bare except
+    "D",             # docstrings on public functions
+]
+ignore = [
+    "D203", "D213",  # conflicting docstring conventions; keep D211/D212
+    "ANN401",        # Any is occasionally correct at adapter boundaries
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D", "ANN"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

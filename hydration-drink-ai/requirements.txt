@@ -1,0 +1,18 @@
+# Runtime
+anthropic>=0.40.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+# Adapters call the Telegram and LINE HTTP APIs through httpx directly rather
+# than through python-telegram-bot / line-bot-sdk. MessagingPort already owns
+# the handler model; each vendor SDK would bring a competing one, and the two
+# adapters would end up shaped differently for no benefit. Both APIs are a
+# handful of JSON endpoints.
+httpx>=0.27.0
+APScheduler>=3.10.0
+Pillow>=11.0.0          # resize photos before the vision call
+
+# Dev
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
+hypothesis>=6.100.0     # convergence property tests for the sync model
+ruff>=0.7.0
