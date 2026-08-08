@@ -30,6 +30,7 @@ from ..adapters.line import LineAdapter, verify_signature
 from ..core import db
 from ..core.models import Platform
 from .dispatch import Dispatcher
+from .routes import build_router
 
 _LOG = logging.getLogger(__name__)
 
@@ -51,6 +52,7 @@ def create_app(dispatcher: Dispatcher, config: WebhookConfig) -> FastAPI:
     """
     app = FastAPI(title="hydration-drink-ai", docs_url=None, redoc_url=None)
     app.include_router(_router(dispatcher, config))
+    app.include_router(build_router(config.db_path))
     return app
 
 

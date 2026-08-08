@@ -76,9 +76,16 @@ def remove_entry(
     """
     moment = day_util.to_iso(when or day_util.utc_now())
     row = conn.execute(
-        "SELECT deleted_at FROM logs WHERE id = ? AND user_id = ?",
-        (entry_id, user_id),
+        "SELECT user_id, deleted_at FROM logs WHERE id = ?", (entry_id,)
     ).fetchone()
+
+    if row is not None and row["user_id"] != user_id:
+        # The id exists but belongs to somebody else. Do nothing at all: a
+        # tombstone would be a cross-account write, and the placeholder path
+        # below would collide on the primary key and raise. Looking the row up
+        # by id alone rather than by (id, user_id) is what makes this
+        # distinguishable from "never seen".
+        return False
 
     if row is None:
         # Removal arrived before its add. Record a tombstoned placeholder so the
