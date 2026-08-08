@@ -138,6 +138,21 @@ def live_entries(
     )
 
 
+def last_live_entry(
+    conn: sqlite3.Connection,
+    user_id: str,
+    timezone: str,
+    when: datetime | None = None,
+) -> sqlite3.Row | None:
+    """Return the most recent non-removed entry on the user's current local day.
+
+    Backs ``/undo``. Scoped to today so an undo can never silently reach back
+    into a previous day the user has stopped thinking about.
+    """
+    entries = live_entries(conn, user_id, timezone, when)
+    return entries[-1] if entries else None
+
+
 def day_totals(
     conn: sqlite3.Connection,
     user_id: str,
