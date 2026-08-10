@@ -51,8 +51,14 @@ def calc() -> object:
 ESCAPES = [
     "().__class__",
     "().__class__.__base__.__subclasses__()",
-    "[c for c in ().__class__.__base__.__subclasses__() "
-    "if c.__name__=='_wrap_close'][0].__init__.__globals__",
+    # One payload, split across two lines. The parentheses are load-bearing:
+    # without them ruff reads this as a missing comma (ISC004), and "fixing" it
+    # that way splits it into two strings that are each a SyntaxError -- the
+    # test would still pass, but on the parser instead of the sandbox.
+    (
+        "[c for c in ().__class__.__base__.__subclasses__() "
+        "if c.__name__=='_wrap_close'][0].__init__.__globals__"
+    ),
     "(1).__class__.__mro__[1].__subclasses__()",
     "''.__class__.__mro__[1].__subclasses__()",
     "__import__('os').system('echo pwned')",
