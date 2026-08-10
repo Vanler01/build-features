@@ -34,7 +34,7 @@ function fail(term: string, message: string): never {
   throw new SeedError(`${term}: ${message}`);
 }
 
-function parseSense(term: string, raw: unknown): Sense {
+export function parseSense(term: string, raw: unknown): Sense {
   if (typeof raw !== 'object' || raw === null) fail(term, 'sense must be an object');
   const r = raw as Record<string, unknown>;
 

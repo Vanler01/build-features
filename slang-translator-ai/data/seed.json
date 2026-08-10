@@ -467,6 +467,11 @@
         "confidence": "high",
         "content_flags": [],
         "example": "Stop glazing, he's not that good."
+      },
+      {
+        "definition": "A sexual act involving ejaculation onto a person, often phrased as being \"glazed like a donut.\"",
+        "confidence": "medium",
+        "content_flags": ["sexual"]
       }
     ],
     "source": "claude",

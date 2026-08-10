@@ -8,7 +8,7 @@
 import { describe, expect, it } from 'vitest';
 import { openStore } from '../../src/store/db.js';
 import { findTerm, recordLookup } from '../../src/store/lookup.js';
-import { reportTerm, writeClaudeTerm } from '../../src/store/write.js';
+import { insertTerm, reportTerm, writeClaudeTerm } from '../../src/store/write.js';
 
 function freshStore(): ReturnType<typeof openStore> {
   return openStore(':memory:');
@@ -115,5 +115,75 @@ describe('reporting', () => {
     expect(rows.some((r) => r.reason === 'reported' && r.note === 'this definition is wrong')).toBe(
       true,
     );
+  });
+});
+
+describe('insertTerm (seed loader path)', () => {
+  it('preserves source, verified, senses, and aliases exactly as given', () => {
+    const db = freshStore();
+    const id = insertTerm(db, {
+      term: 'cap',
+      aliases: ['no cap', 'nocap'],
+      register: 'both',
+      source: 'manual_seed',
+      verified: true,
+      senses: [
+        { definition: 'A lie.', confidence: 'high', contentFlags: [] },
+        { definition: 'A hat.', confidence: 'medium', contentFlags: [] },
+      ],
+    });
+
+    const found = findTerm(db, 'cap');
+    expect(found?.id).toBe(id);
+    expect(found?.source).toBe('manual_seed');
+    expect(found?.verified).toBe(true);
+    expect(found?.senses).toHaveLength(2);
+    expect(found?.aliases.slice().sort()).toEqual(['no cap', 'nocap']);
+
+    // The alias resolves too — not just the primary term.
+    expect(findTerm(db, 'nocap')?.id).toBe(id);
+  });
+
+  it('queues an unverified term for review, same as a live Claude miss would', () => {
+    const db = freshStore();
+    const id = insertTerm(db, {
+      term: 'yeet',
+      aliases: [],
+      register: 'genz',
+      source: 'claude',
+      verified: false,
+      senses: [{ definition: 'To throw.', confidence: 'high', contentFlags: [] }],
+    });
+    const queued = db.prepare('SELECT reason FROM review_queue WHERE term_id = ?').get(id) as
+      | { reason: string }
+      | undefined;
+    expect(queued?.reason).toBe('unverified');
+  });
+
+  it('does not queue a review entry for an already-verified term', () => {
+    const db = freshStore();
+    const id = insertTerm(db, {
+      term: 'cap',
+      aliases: [],
+      register: 'both',
+      source: 'manual_seed',
+      verified: true,
+      senses: [{ definition: 'A lie.', confidence: 'high', contentFlags: [] }],
+    });
+    const queued = db.prepare('SELECT 1 FROM review_queue WHERE term_id = ?').get(id);
+    expect(queued).toBeUndefined();
+  });
+
+  it('resolves a real emoji alias — 🧢 must not normalise away to nothing', () => {
+    const db = freshStore();
+    const id = insertTerm(db, {
+      term: 'cap',
+      aliases: ['no cap', 'nocap', '🧢'],
+      register: 'both',
+      source: 'manual_seed',
+      verified: true,
+      senses: [{ definition: 'A lie.', confidence: 'high', contentFlags: [] }],
+    });
+    expect(findTerm(db, '🧢')?.id).toBe(id);
   });
 });

@@ -49,11 +49,15 @@ export interface Term {
   readonly verified: boolean;
 }
 
-/** Normalise a term for lookup: case, whitespace and surrounding punctuation. */
+/**
+ * Normalise a term for lookup: case, whitespace, surrounding punctuation.
+ * Real emoji (🧢) are kept — an alias like the "cap" emoji would otherwise
+ * normalise to the empty string and become permanently unreachable.
+ */
 export function normalise(raw: string): string {
   return raw
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s'’-]/gu, ' ')
+    .replace(/[^\p{L}\p{N}\p{Emoji_Presentation}\s'’-]/gu, ' ')
     .trim()
     .replace(/\s+/g, ' ');
 }
