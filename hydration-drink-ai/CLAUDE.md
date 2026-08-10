@@ -5,10 +5,10 @@ tapped on a home-screen widget), and points you at nearby cafes/bars. Bots
 (Telegram + LINE) → app → widget, one backend. Full spec: `REQUIREMENTS.md`.
 Approved plan: `~/.claude/plans/gentle-weaving-candy.md`.
 
-**Status: spec-only.** No code yet.
-
-Shared rules for this project class: `../AI_PROJECTS.md`. This file holds only
+Shared rules for this project class are imported below; this file holds only
 what is specific to hydration-drink-ai.
+
+@../AI_PROJECTS.md
 
 ## Stack
 - Backend: Python 3.11+, FastAPI, `python-telegram-bot`, LINE Messaging API, SQLite

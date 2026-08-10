@@ -4,12 +4,13 @@ Translates any number to any other form: between numeral systems (Arabic 123,
 Thai ๑๒๓, Roman CXXIII, Chinese 一二三…) and between number words across
 languages, both directions. Telegram bot. Full spec: `REQUIREMENTS.md`.
 
-**Status: spec-only.** No code yet. Read `REQUIREMENTS.md` first, including the
-open question about this project's relationship to the existing `num-to-text`
-submodule.
+Read `REQUIREMENTS.md` first, including the open question about this project's
+relationship to the existing `num-to-text` submodule.
 
-Shared rules for this project class: `../AI_PROJECTS.md`. This file holds only
+Shared rules for this project class are imported below; this file holds only
 what is specific to numeral-translator-ai.
+
+@../AI_PROJECTS.md
 
 ## Stack
 - Python 3.11+ (forced — `num2words` has no real JS equivalent)

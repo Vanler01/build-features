@@ -18,6 +18,8 @@ instead of this file when working in one of them.
 - **slang-translator-ai** — Gen Z/Alpha slang decoder (bot → Chrome extension)
 - **job-prep-ai** — intern/first-jobber job search + prep (privacy-minimal)
 - **numeral-translator-ai** — universal numeral & number-word translator
+- **news-digest-ai** — daily science/tech/stocks digest (scheduled push, not a
+  conversational bot)
 
 None of the class-1 rules (CGEventTap, NSPanel, Accessibility, `_synth_pending`,
 `cache/`) apply to class 2, and vice versa.
@@ -51,25 +53,10 @@ None of the class-1 rules (CGEventTap, NSPanel, Accessibility, `_synth_pending`,
 ## Git Submodule Workflow
 - Outer repo tracks submodule commit pointers only
 - Commit inside the submodule first, then update the pointer in the outer repo
-- `git push` + merge to main are done by the user (see `.claude/settings.json`)
-
-## Project Paths
-
-Class 1 — daemons (submodules):
-- en-th-word-swap: ~/build-features/en-th-word-swap/  (rules: its own CLAUDE.md)
-- num-to-text:     ~/build-features/num-to-text/      (rules: its own CLAUDE.md)
-- morse-code:      ~/build-features/morse-code/       (rules: its own CLAUDE.md)
-
-Class 2 — AI products (plain dirs, spec-only for now):
-- hydration-drink-ai:     ~/build-features/hydration-drink-ai/
-- slang-translator-ai:    ~/build-features/slang-translator-ai/
-- job-prep-ai:            ~/build-features/job-prep-ai/
-- numeral-translator-ai:  ~/build-features/numeral-translator-ai/
-
-  Shared rules: AI_PROJECTS.md. Per-project rules: each dir's own CLAUDE.md.
+- `git push` prompts for approval (it is in the `ask` list in
+  `.claude/settings.json`); merge to main is done by the user
 
 Note: en-th-word-swap and num-to-text monitor/inject keystrokes system-wide;
 morse-code uses CGEventTap only for its Option+M hotkey (no injection).
 
 @AGENTS.md
-@AI_PROJECTS.md

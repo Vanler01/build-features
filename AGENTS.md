@@ -1,18 +1,12 @@
 # AGENTS.md — build-features (shared)
 
-**Scope: the macOS daemons only.** The AI-product projects
-(hydration-drink-ai, slang-translator-ai, job-prep-ai, numeral-translator-ai)
-have their own conventions in `AI_PROJECTS.md` and their own agents listed in
-each project's `AGENTS.md` — nothing in this file applies to them.
+**Scope: the macOS daemons only.** The AI-product projects (the class-2 list in
+the root `CLAUDE.md`) have their own conventions in `AI_PROJECTS.md` and their
+own agents listed in each project's `AGENTS.md` — nothing in this file applies
+to them.
 
 Shared conventions for the daemons. Per-project triggers, test rules, and
 file-ownership tables live in each submodule's own `AGENTS.md`.
-
-## Project Overview
-macOS Python background daemons. en-th-word-swap and num-to-text use
-CGEventTap for system-wide keyboard monitoring; morse-code uses CGEventTap
-only for its Option+M hotkey. All three share the architecture patterns
-documented in the root `CLAUDE.md`.
 
 ## Key Commands
 - Install deps (en-th): `pip3 install pyobjc pythainlp --break-system-packages`
@@ -43,10 +37,8 @@ documented in the root `CLAUDE.md`.
 - Per-project test details: see each submodule's `AGENTS.md`
 
 ## Shared Architecture Constraints
-- CGEventTap: `kCGHeadInsertEventTap` (intercept before apps)
-- NSPanel: `NSNonActivatingPanelMask` + `NSFloatingWindowLevel`
+(CGEventTap, NSPanel, and daemon-thread constraints are in the root `CLAUDE.md`.)
 - Cache files: JSON format in each project's own `cache/` directory
-- Daemon threads: always `daemon=True`
 - Network: only in `updater.py`, max once per 24h per project
 
 ## Shared Agents
@@ -63,5 +55,5 @@ documented in their respective submodule `AGENTS.md`.
 **Do not use the agents above on the AI-product projects.** `security-reviewer`
 in particular greps for keystroke logging and CGEventTap misuse; run against a
 Telegram bot it will report a clean pass that means nothing. Each AI project has
-its own four agents — see `AI_PROJECTS.md` for the naming convention and the
+its own agents — see `AI_PROJECTS.md` for the naming convention and the
 project's `AGENTS.md` for the table.

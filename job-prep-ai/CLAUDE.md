@@ -4,11 +4,13 @@ Non-profit job-search and prep tool for interns and first-time job seekers.
 Bangkok/Thailand-focused plus global/remote, filtered by commute time, pay, and
 fit. Suggestion tool, not a data broker. Full spec: `REQUIREMENTS.md`.
 
-**Status: spec-only.** No code yet. The platform question (Telegram bot vs. web
-app) is **still open** — do not assume one. Read `REQUIREMENTS.md` first.
+The platform question (Telegram bot vs. web app) is **still open** — do not
+assume one. Read `REQUIREMENTS.md` first.
 
-Shared rules for this project class: `../AI_PROJECTS.md`. This file holds only
+Shared rules for this project class are imported below; this file holds only
 what is specific to job-prep-ai.
+
+@../AI_PROJECTS.md
 
 ## Stack
 - Python 3.11+, `fastapi`, `anthropic`, `httpx`, SQLite

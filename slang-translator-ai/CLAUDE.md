@@ -3,10 +3,10 @@
 Decodes Gen Z / Gen Alpha slang: short definition + example. Telegram bot →
 Chrome context-menu extension. Full spec: `REQUIREMENTS.md`.
 
-**Status: spec-only.** No code yet.
-
-Shared rules for this project class: `../AI_PROJECTS.md`. This file holds only
+Shared rules for this project class are imported below; this file holds only
 what is specific to slang-translator-ai.
+
+@../AI_PROJECTS.md
 
 ## Stack
 - Node 20+ / TypeScript (`strict: true`), `grammY`, `@anthropic-ai/sdk`, SQLite
