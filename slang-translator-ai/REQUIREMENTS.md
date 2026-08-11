@@ -6,8 +6,8 @@ Decodes Gen Z and Gen Alpha slang the moment you hit it — a term, an acronym, 
 phrase — and gives back a short plain definition plus an example. Telegram bot
 first, browser extension second, one vocabulary store behind both.
 
-> Status: Phases 0–3 built (seed, bot, review queue, extension + backend).
-> Phase 4 (aliases, regional senses, prioritisation) next.
+> Status: Phases 0–4 built. Every roadmap item is implemented; what remains is
+> use — working the review queue down, and deciding the sharing question below.
 
 ---
 
@@ -285,8 +285,24 @@ Two things the spec did not anticipate:
 A selection cap (300 characters) enforces "never the page" against the obvious
 defeat, which is Ctrl+A followed by a right-click.
 
-**Phase 4 — Polish**
+**Phase 4 — Polish** ✅
 Aliases and variants, regional senses, most-looked-up prioritisation.
+
+- **Variants are resolved, not stored.** Aliases stay curated — a person
+  decided "nocap" and "🧢" mean "cap". Mechanical shapes of the same word
+  ("capping", "capped", "no-cap", "bussin'") are generated at lookup time and
+  tried only after an exact and an alias match have both missed, so a wrong
+  guess falls through to Claude rather than answering as the wrong entry.
+  Matching is separator-insensitive on *both* sides, because "no cap" can
+  generate "nocap" but nothing can tell you where to put the space back.
+  Deliberately not recorded: which variant a user typed. That is their own
+  text, and `lookups` holds a term id and a timestamp (§9).
+- **Regional senses are rows, with a `region`.** See §13.
+- **The queue is ordered by demand.** Within a reason, the terms people
+  actually ask about come first, so the entries served most often are the ones
+  a human has checked. `npm run review -- top` shows demand directly, marking
+  what is still unverified — the top unverified row there is the highest-value
+  review in the store.
 
 ---
 
@@ -336,8 +352,16 @@ nobody thought to integrate with — which a per-site content script would not.
   loopback with no auth and no rate limiting, and sharing turns it into a
   hosted service holding a Claude key on other people's behalf. Not a
   deployment step — a different product with different obligations.
-- Do regional and community-specific senses need their own rows, or a note on
-  the sense? Phase 4.
+- ~~Do regional and community-specific senses need their own rows, or a note on
+  the sense?~~ **Their own rows**, each carrying a `region`. This is §3's
+  argument one level down: "a single definition per term is a modelling error
+  that shows up in week one", and a single sense covering two regions is the
+  same error again. UK "bare" (meaning "very") is not a shade of some other
+  sense of *bare*; it is a separate meaning that happens to be geographically
+  bounded. A note inside another sense's prose would hide a real sense in a
+  footnote, where disambiguation cannot reach it and context cannot lead a
+  reader to it. `region` is NULL by default, which reads as "not known to be
+  regional" rather than as a claim to be universal.
 
 Stack per `../AI_PROJECTS.md`: Node 20+ / TypeScript, grammY,
 `@anthropic-ai/sdk`, SQLite.

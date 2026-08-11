@@ -29,9 +29,15 @@ npm run review -- show <term>                    # senses, flags, stored vs aged
 npm run review -- verify <term> --by <you>       # the only path to verified
 npm run review -- reject <term>                  # looked, not confirmed; clears the item
 npm run review -- unverify <term>                # send a verified entry back
+npm run review -- alias <term> = <variant>       # record an irregular spelling
+npm run review -- top                            # most looked-up terms
 npm run review -- sweep                          # queue stale + low-confidence entries
 npm run review -- stats
 ```
+`list` and `top` are ordered by how often a term is looked up, so the entries
+being served most are reviewed first. `alias` is for irregular spellings only —
+plurals, `-ing`/`-ed` and run-together phrases resolve on their own via
+`src/store/variants.ts` and are never written to the database.
 The `--` matters: without it npm eats `--by` and the reviewer name is lost.
 `SLANG_REVIEWER=<you>` works instead of the flag. The CLI needs no API keys and
 makes no network calls — re-verification is a person reading an entry, not a

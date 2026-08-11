@@ -38,6 +38,32 @@ describe('defineTerm', () => {
     expect(result.senses[0]?.confidence).toBe('medium');
   });
 
+  it('carries a region through when Claude marks one', async () => {
+    const client = fakeClient({
+      register: 'both',
+      senses: [
+        {
+          definition: 'Very, or a lot of.',
+          example: 'that queue was bare long',
+          confidence: 'high',
+          content_flags: [],
+          region: 'UK',
+        },
+      ],
+    });
+    const result = await defineTerm(client, 'bare');
+    expect(result.senses[0]?.region).toBe('UK');
+  });
+
+  it('leaves region absent when Claude omits it, rather than inventing one', async () => {
+    const client = fakeClient({
+      register: 'genz',
+      senses: [{ definition: 'Charisma.', confidence: 'high', content_flags: [] }],
+    });
+    const result = await defineTerm(client, 'rizz');
+    expect(result.senses[0]?.region).toBeUndefined();
+  });
+
   it('refuses a slur sense that carries a usage example', async () => {
     // Same rule as the seed validator (CLAUDE.md rule 11), enforced on Claude
     // output the same way it's enforced on the hand-written seed.

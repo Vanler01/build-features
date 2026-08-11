@@ -10,6 +10,7 @@ import type { Store } from './db.js';
 import { decayConfidence } from './decay.js';
 import type { ContentFlag, Confidence, Register, Sense, Source, Term } from './types.js';
 import { normalise } from './types.js';
+import { collapse, variantsOf } from './variants.js';
 
 interface TermRow {
   readonly id: number;
@@ -27,6 +28,7 @@ interface SenseRow {
   readonly example: string | null;
   readonly confidence: Sense['confidence'];
   readonly content_flags: string;
+  readonly region: string | null;
   readonly last_seen: string;
 }
 
@@ -58,7 +60,7 @@ export interface StoredTerm extends Term {
 function sensesFor(db: Store, termId: number, now: Date): StoredSense[] {
   const rows = db
     .prepare(
-      `SELECT id, definition, example, confidence, content_flags, last_seen
+      `SELECT id, definition, example, confidence, content_flags, region, last_seen
        FROM senses WHERE term_id = ? ORDER BY id`,
     )
     .all(termId) as SenseRow[];
@@ -70,6 +72,7 @@ function sensesFor(db: Store, termId: number, now: Date): StoredSense[] {
     lastSeen: r.last_seen,
     contentFlags: JSON.parse(r.content_flags) as ContentFlag[],
     ...(r.example === null ? {} : { example: r.example }),
+    ...(r.region === null ? {} : { region: r.region }),
   }));
 }
 
@@ -103,19 +106,58 @@ export function findTerm(db: Store, raw: string, now: Date = new Date()): Stored
   const key = normalise(raw);
   if (key === '') return undefined;
 
+  const exact = byKey(db, key);
+  if (exact !== undefined) return toStoredTerm(db, exact, now);
+
+  // Variants last, and only after both exact and curated-alias lookups have
+  // missed. They widen what resolves to an *existing* entry; they never
+  // create one, so a wrong guess simply misses and falls through to Claude.
+  for (const candidate of variantsOf(raw)) {
+    const row = byKey(db, candidate);
+    if (row !== undefined) return toStoredTerm(db, row, now);
+  }
+
+  // Separator-insensitive match, which has to be done against the stored side
+  // as well as the query. Generating "nocap" from "no cap" is easy; the
+  // reverse is impossible, because nothing says where the space goes. So both
+  // sides are collapsed and compared.
+  const viaCollapsed = byCollapsedKey(db, collapse(key));
+  return viaCollapsed === undefined ? undefined : toStoredTerm(db, viaCollapsed, now);
+}
+
+/** Match ignoring spaces and hyphens on both sides — "nocap" ⇄ "no cap". */
+function byCollapsedKey(db: Store, collapsedKey: string): TermRow | undefined {
+  // An unindexed scan, which is fine at this size and honest about it: the
+  // store holds tens of terms, and this only runs after every indexed lookup
+  // has already missed.
+  const direct = db
+    .prepare(`SELECT * FROM terms WHERE REPLACE(REPLACE(normalised, ' ', ''), '-', '') = ?`)
+    .get(collapsedKey) as TermRow | undefined;
+  if (direct !== undefined) return direct;
+
+  return db
+    .prepare(
+      `SELECT terms.* FROM terms
+       JOIN aliases ON aliases.term_id = terms.id
+       WHERE REPLACE(REPLACE(aliases.normalised, ' ', ''), '-', '') = ?`,
+    )
+    .get(collapsedKey) as TermRow | undefined;
+}
+
+/** Exact match on a normalised key, by term then by curated alias. */
+function byKey(db: Store, key: string): TermRow | undefined {
   const direct = db.prepare('SELECT * FROM terms WHERE normalised = ?').get(key) as
     | TermRow
     | undefined;
-  if (direct !== undefined) return toStoredTerm(db, direct, now);
+  if (direct !== undefined) return direct;
 
-  const viaAlias = db
+  return db
     .prepare(
       `SELECT terms.* FROM terms
        JOIN aliases ON aliases.term_id = terms.id
        WHERE aliases.normalised = ?`,
     )
     .get(key) as TermRow | undefined;
-  return viaAlias === undefined ? undefined : toStoredTerm(db, viaAlias, now);
 }
 
 /**

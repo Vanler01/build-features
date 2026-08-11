@@ -67,11 +67,17 @@ export function parseSense(term: string, raw: unknown): Sense {
     fail(term, 'a slur must not carry a usage example');
   }
 
+  const region = r['region'];
+  if (region !== undefined && (typeof region !== 'string' || region.trim() === '')) {
+    fail(term, 'region must be a non-empty string when present');
+  }
+
   return {
     definition,
     confidence: confidence as Sense['confidence'],
     contentFlags,
     ...(example === undefined ? {} : { example }),
+    ...(region === undefined ? {} : { region: region as string }),
   };
 }
 

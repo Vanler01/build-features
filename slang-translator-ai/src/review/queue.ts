@@ -10,6 +10,7 @@
 import type { Store } from '../store/db.js';
 import { hasDecayed } from '../store/decay.js';
 import { findTerm, type StoredTerm } from '../store/lookup.js';
+import { normalise } from '../store/types.js';
 
 /** Why something is sitting in the queue. Mirrors the schema's CHECK. */
 export type ReviewReason = 'unverified' | 'decayed' | 'reported';
@@ -22,6 +23,8 @@ export interface PendingItem {
   readonly reason: ReviewReason;
   readonly note: string | undefined;
   readonly queuedAt: string;
+  /** How often the term has been asked for — what the queue is ordered by. */
+  readonly lookupCount: number;
 }
 
 interface PendingRow {
@@ -31,6 +34,7 @@ interface PendingRow {
   readonly reason: ReviewReason;
   readonly note: string | null;
   readonly queued_at: string;
+  readonly lookup_count: number;
 }
 
 interface SenseAgeRow {
@@ -43,18 +47,30 @@ interface CountRow {
 }
 
 /**
- * Open items, oldest first. `reported` sorts ahead of everything else — a user
- * saying an answer is wrong is a stronger signal than an entry merely never
- * having been read, and it is also the cheapest to act on.
+ * Open items, most worth a human's time first.
+ *
+ * `reported` still sorts ahead of everything — a user saying an answer is
+ * wrong is a stronger signal than an entry merely never having been read, and
+ * it is the cheapest to act on. Within a reason, the tiebreak is now **how
+ * often the term has been looked up** rather than how long it has sat in the
+ * queue (REQUIREMENTS §11, "most-looked-up prioritisation").
+ *
+ * Queue order by age reviews whatever was seeded first, which is alphabetical
+ * accident. Order by lookups reviews the words people are actually asking
+ * about, so the entries that get served most are the ones a human has checked.
+ * Age remains the final tiebreak so an unasked-for term still surfaces
+ * eventually rather than never.
  */
 export function pending(db: Store, limit = 50): PendingItem[] {
   const rows = db
     .prepare(
-      `SELECT rq.id, rq.term_id, t.term, rq.reason, rq.note, rq.queued_at
+      `SELECT rq.id, rq.term_id, t.term, rq.reason, rq.note, rq.queued_at,
+              (SELECT COUNT(*) FROM lookups l WHERE l.term_id = rq.term_id) AS lookup_count
          FROM review_queue rq
          JOIN terms t ON t.id = rq.term_id
         WHERE rq.resolved_at IS NULL
         ORDER BY CASE rq.reason WHEN 'reported' THEN 0 WHEN 'decayed' THEN 1 ELSE 2 END,
+                 lookup_count DESC,
                  rq.queued_at
         LIMIT ?`,
     )
@@ -67,7 +83,71 @@ export function pending(db: Store, limit = 50): PendingItem[] {
     reason: r.reason,
     note: r.note ?? undefined,
     queuedAt: r.queued_at,
+    lookupCount: r.lookup_count,
   }));
+}
+
+/** A term and how often it has been asked for, most-asked first. */
+export interface TermDemand {
+  readonly term: string;
+  readonly lookups: number;
+  readonly verified: boolean;
+}
+
+interface DemandRow {
+  readonly term: string;
+  readonly lookups: number;
+  readonly verified: number;
+}
+
+/**
+ * What people actually ask about, whether or not it is queued.
+ *
+ * The queue answers "what needs looking at"; this answers "what is this store
+ * for". An unverified term at the top of this list is the single highest-value
+ * review in the whole database.
+ */
+export function mostLookedUp(db: Store, limit = 20): TermDemand[] {
+  const rows = db
+    .prepare(
+      `SELECT t.term, t.verified,
+              (SELECT COUNT(*) FROM lookups l WHERE l.term_id = t.id) AS lookups
+         FROM terms t
+        WHERE lookups > 0
+        ORDER BY lookups DESC, t.term
+        LIMIT ?`,
+    )
+    .all(limit) as DemandRow[];
+
+  return rows.map((r) => ({ term: r.term, lookups: r.lookups, verified: r.verified === 1 }));
+}
+
+/**
+ * Record a spelling that should resolve to an existing term.
+ *
+ * The counterpart to `variantsOf`: mechanical variants are resolved on the
+ * fly and never written down, so anything irregular — "finna" for "fixing
+ * to", an emoji, a deliberate misspelling — needs a person to say so once.
+ */
+export function addAlias(db: Store, term: string, variant: string): ReviewOutcome {
+  const trimmed = variant.trim();
+  if (trimmed === '') throw new Error('addAlias: the variant cannot be empty');
+
+  const stored = findTerm(db, term);
+  if (stored === undefined) throw new Error(`addAlias: no term matching "${term}"`);
+
+  const existing = findTerm(db, trimmed);
+  if (existing !== undefined && existing.id !== stored.id) {
+    // Silently repointing a word that already means something else is how a
+    // store starts giving confidently wrong answers.
+    throw new Error(`addAlias: "${trimmed}" already resolves to "${existing.term}"`);
+  }
+
+  db.prepare(
+    'INSERT OR IGNORE INTO aliases (term_id, variant, normalised) VALUES (?, ?, ?)',
+  ).run(stored.id, trimmed, normalise(trimmed));
+
+  return { term: stored.term, itemsResolved: 0 };
 }
 
 /** How many open items there are, by reason. */

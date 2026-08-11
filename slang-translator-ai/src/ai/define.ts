@@ -42,6 +42,13 @@ const DEFINE_TOOL: Anthropic.Tool = {
               type: 'array',
               items: { type: 'string', enum: ['sexual', 'vulgar', 'slur', 'violent'] },
             },
+            region: {
+              type: 'string',
+              description:
+                'Where this meaning holds, if it is not general — "UK", "US", "AAVE", ' +
+                '"gaming". Omit entirely when the meaning is not regionally bounded. ' +
+                'Do not guess: an absent region is the honest answer.',
+            },
           },
           required: ['definition', 'confidence', 'content_flags'],
           additionalProperties: false,

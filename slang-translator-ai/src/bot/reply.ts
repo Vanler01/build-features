@@ -13,6 +13,17 @@ function flagPrefix(sense: StoredSense): string {
   return sense.contentFlags.length === 0 ? '' : `[${sense.contentFlags.join(', ')}] `;
 }
 
+/**
+ * Where a meaning holds, when it does not hold everywhere.
+ *
+ * Unmarked senses say nothing rather than claiming to be universal. A reader
+ * met this word somewhere specific, and "this is the UK meaning" is often the
+ * whole answer to why it did not make sense to them.
+ */
+function regionSuffix(sense: StoredSense): string {
+  return sense.region === undefined ? '' : ` (${sense.region})`;
+}
+
 function confidenceSuffix(sense: StoredSense): string {
   // REQUIREMENTS §2: a low-confidence read says so, rather than presenting a
   // guess with the same certainty as a checked definition. The *effective*
@@ -67,7 +78,12 @@ function formatSense(term: string, sense: StoredSense): string {
   // quote inside a quote, and it leaves the 21 seed examples containing
   // apostrophes completely untouched.
   const example = showExample ? ` “${sense.example ?? ''}”` : '';
-  return `${flagPrefix(sense)}"${term}" = ${sense.definition}${example}${confidenceSuffix(sense)}`;
+  // Region sits with the definition it qualifies, before the example, so the
+  // example reads as an instance of *that* regional use.
+  return (
+    `${flagPrefix(sense)}"${term}" = ${sense.definition}${regionSuffix(sense)}` +
+    `${example}${confidenceSuffix(sense)}`
+  );
 }
 
 /**
@@ -101,7 +117,7 @@ export function formatTermReply(term: StoredTerm, leadIndex?: number): string {
   // flag shown.
   const others = senses
     .filter((_, i) => i !== index)
-    .map((s) => `${flagPrefix(s)}${s.definition}`);
+    .map((s) => `${flagPrefix(s)}${s.definition}${regionSuffix(s)}`);
   // The label sits on the lead line, not after "(also: …)" — it qualifies the
   // whole entry, and trailing it after the alternates would read as though it
   // applied only to those.

@@ -1,0 +1,23 @@
+-- Phase 4: regional and community-specific senses.
+--
+-- REQUIREMENTS §13 asked whether a regional meaning needs its own row or a
+-- note on an existing sense. It needs its own row, and this column is the
+-- attribute that makes that workable.
+--
+-- The reasoning is §3's, one level down. "A single definition per term is a
+-- modelling error that shows up in week one" — and a single definition per
+-- *sense* covering two regions is the same error again. UK "bare" (meaning
+-- "very", "a lot") is not a shade of some other sense of bare; it is a
+-- separate meaning that happens to be geographically bounded. Writing "in the
+-- UK this can also mean very" into another sense's prose would hide a real
+-- sense inside a footnote, where disambiguation cannot reach it and the
+-- reader cannot be led to it by context.
+--
+-- So: one sense per meaning, as before, and `region` says where that meaning
+-- holds. NULL means unmarked — the sense is not known to be regional, which
+-- is the honest default and what every existing row gets.
+--
+-- A plain ADD COLUMN, not a table rebuild: nothing about the existing
+-- constraints changes, and SQLite appends a nullable column in place.
+
+ALTER TABLE senses ADD COLUMN region TEXT;

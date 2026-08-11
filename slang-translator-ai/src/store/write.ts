@@ -28,8 +28,8 @@ export function writeClaudeTerm(db: Store, defined: DefinedTerm): number {
   );
   const insertSense = db.prepare(
     `INSERT INTO senses
-       (term_id, definition, example, confidence, content_flags, first_seen, last_seen)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       (term_id, definition, example, confidence, content_flags, region, first_seen, last_seen)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   const insertReview = db.prepare(
     `INSERT INTO review_queue (term_id, reason, queued_at) VALUES (?, 'unverified', ?)`,
@@ -51,6 +51,7 @@ export function writeClaudeTerm(db: Store, defined: DefinedTerm): number {
         sense.example ?? null,
         sense.confidence,
         JSON.stringify(sense.contentFlags),
+        sense.region ?? null,
         now,
         now,
       );
@@ -83,8 +84,8 @@ export function insertTerm(db: Store, term: Term): number {
   );
   const insertSense = db.prepare(
     `INSERT INTO senses
-       (term_id, definition, example, confidence, content_flags, first_seen, last_seen)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       (term_id, definition, example, confidence, content_flags, region, first_seen, last_seen)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   const insertAlias = db.prepare(
     `INSERT INTO aliases (term_id, variant, normalised) VALUES (?, ?, ?)`,
@@ -111,6 +112,7 @@ export function insertTerm(db: Store, term: Term): number {
         sense.example ?? null,
         sense.confidence,
         JSON.stringify(sense.contentFlags),
+        sense.region ?? null,
         now,
         now,
       );

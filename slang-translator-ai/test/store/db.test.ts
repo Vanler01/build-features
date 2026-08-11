@@ -27,24 +27,30 @@ afterEach(() => {
 });
 
 /**
- * Build a database at schema 001 only, the way a store created before Phase 2
- * existed actually looks on disk.
+ * Build a database at an earlier point in the migration history, the way a
+ * store created before a given phase actually looks on disk.
+ *
+ * Applying the real migration files rather than a hand-written schema is the
+ * point: a snapshot copied into the test would drift from the files that ship
+ * and stop testing the upgrade anyone actually performs.
  */
-function storeAtSchema001(): string {
+function storeAtSchema(...applied: readonly string[]): string {
   const dir = mkdtempSync(join(tmpdir(), 'slang-migrate-'));
   tempDirs.push(dir);
   const path = join(dir, 'store.sqlite3');
 
   const db = new Database(path);
   db.exec(`CREATE TABLE schema_migrations (id TEXT PRIMARY KEY, applied_at TEXT NOT NULL)`);
-  db.exec(readFileSync(join(MIGRATIONS_DIR, '001_init.sql'), 'utf8'));
-  db.prepare('INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)').run(
-    '001_init.sql',
-    new Date().toISOString(),
-  );
+  const record = db.prepare('INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)');
+  for (const file of applied) {
+    db.exec(readFileSync(join(MIGRATIONS_DIR, file), 'utf8'));
+    record.run(file, new Date().toISOString());
+  }
   db.close();
   return path;
 }
+
+const storeAtSchema001 = (): string => storeAtSchema('001_init.sql');
 
 describe('migrations', () => {
   it('applies cleanly and is idempotent on a second open', () => {
@@ -98,6 +104,48 @@ describe('migrations', () => {
     db.prepare('DELETE FROM terms WHERE id = ?').run(termId);
     expect(count('senses')).toBe(0);
     expect(count('aliases')).toBe(0);
+    db.close();
+  });
+
+  it('adds the region column to a 002-era database, keeping existing senses', () => {
+    // 003 is a plain ADD COLUMN rather than a rebuild, so the risk is not data
+    // loss but the upgrade silently not happening — leaving reads that select
+    // `region` broken against a real store created before Phase 4.
+    const path = storeAtSchema('001_init.sql', '002_verification.sql');
+
+    const before = new Database(path);
+    const termId = Number(
+      before
+        .prepare(
+          `INSERT INTO terms (term, normalised, register, source, verified, first_seen, last_seen)
+           VALUES ('bare', 'bare', 'both', 'claude', 0, '2026-01-01', '2026-01-01')`,
+        )
+        .run().lastInsertRowid,
+    );
+    before
+      .prepare(
+        `INSERT INTO senses (term_id, definition, example, confidence, content_flags,
+                             first_seen, last_seen)
+         VALUES (?, 'Very, or a lot of.', NULL, 'high', '[]', '2026-01-01', '2026-01-01')`,
+      )
+      .run(termId);
+    expect(
+      before.prepare("SELECT COUNT(*) AS n FROM pragma_table_info('senses') WHERE name = 'region'")
+        .get(),
+    ).toEqual({ n: 0 });
+    before.close();
+
+    const db = openStore(path);
+    const hasRegion = db
+      .prepare("SELECT COUNT(*) AS n FROM pragma_table_info('senses') WHERE name = 'region'")
+      .get() as { n: number };
+    expect(hasRegion.n).toBe(1);
+
+    // The pre-existing sense survives and reads as unmarked, not as a claim.
+    const found = findTerm(db, 'bare');
+    expect(found?.senses).toHaveLength(1);
+    expect(found?.senses[0]?.definition).toBe('Very, or a lot of.');
+    expect(found?.senses[0]?.region).toBeUndefined();
     db.close();
   });
 

@@ -31,6 +31,16 @@ export interface Sense {
   readonly example?: string;
   readonly confidence: Confidence;
   readonly contentFlags: readonly ContentFlag[];
+  /**
+   * Where this meaning holds — "UK", "US", "AAVE", "gaming". Absent means
+   * unmarked, which is the honest default rather than a claim of universality.
+   *
+   * A regional meaning gets its own sense rather than a note inside another
+   * one (REQUIREMENTS §13): it is a separate meaning that happens to be
+   * bounded, and burying it in prose would put it beyond disambiguation's
+   * reach.
+   */
+  readonly region?: string;
 }
 
 /** A term and everything known about it. */

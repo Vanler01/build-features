@@ -12,7 +12,9 @@
 import { openStore, type Store } from '../store/db.js';
 import { formatEntry } from './format.js';
 import {
+  addAlias,
   forReview,
+  mostLookedUp,
   pending,
   queueStats,
   rejectTerm,
@@ -30,6 +32,8 @@ const USAGE = `Usage: npm run review [command]
   verify <term> --by <you>  confirm an entry — the only way anything becomes verified
   reject <term>             a human looked and did not confirm it; clears the queue item
   unverify <term>           send a previously verified entry back for another look
+  alias <term> = <variant>  record a spelling that should resolve to <term>
+  top                       most looked-up terms, and whether they are checked
   sweep                     queue stale and low-confidence entries
   stats                     queue counts
 
@@ -58,12 +62,29 @@ function cmdList(db: Store): void {
     console.log('Queue is empty.');
     return;
   }
-  console.log(`${items.length} open item(s):\n`);
+  console.log(`${items.length} open item(s), most-asked-for first:\n`);
   for (const item of items) {
     const note = item.note === undefined ? '' : ` — ${item.note}`;
-    console.log(`  [${item.reason}] ${item.term}${note}`);
+    const asked = item.lookupCount === 0 ? '' : ` (${item.lookupCount}×)`;
+    console.log(`  [${item.reason}] ${item.term}${asked}${note}`);
   }
   console.log(`\n${unverifiedCount(db)} term(s) unverified overall.`);
+}
+
+function cmdTop(db: Store): void {
+  const rows = mostLookedUp(db);
+  if (rows.length === 0) {
+    console.log('Nothing has been looked up yet.');
+    return;
+  }
+  console.log('Most looked-up terms:\n');
+  for (const row of rows) {
+    // An unverified term at the top of this list is the highest-value review
+    // in the store — it is the one being served most often unchecked.
+    console.log(
+      `  ${String(row.lookups).padStart(5)}×  ${row.term}${row.verified ? '' : '  ← unverified'}`,
+    );
+  }
 }
 
 function cmdShow(db: Store, term: string): void {
@@ -139,6 +160,20 @@ function main(): void {
         console.log(`"${outcome.term}" sent back for review.`);
         break;
       }
+      case 'alias': {
+        // `alias no cap = nocap` — the `=` is what separates a multi-word term
+        // from a multi-word variant, both of which are ordinary here.
+        const [termPart, variantPart, ...extra] = target.split('=');
+        if (variantPart === undefined || extra.length > 0) {
+          throw new Error('Usage: npm run review -- alias <term> = <variant>');
+        }
+        const outcome = addAlias(db, termPart?.trim() ?? '', variantPart.trim());
+        console.log(`"${variantPart.trim()}" now resolves to "${outcome.term}".`);
+        break;
+      }
+      case 'top':
+        cmdTop(db);
+        break;
       case 'sweep':
         cmdSweep(db);
         break;
