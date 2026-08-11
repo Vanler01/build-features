@@ -230,6 +230,45 @@ describe('formatTermReply — content flags: flag, and show', () => {
   });
 });
 
+describe('formatTermReply — whether a person has checked it', () => {
+  it('says so when nobody has reviewed the entry', () => {
+    const reply = formatTermReply(term({ verified: false, source: 'claude' }));
+    expect(reply).toContain('(not yet reviewed)');
+  });
+
+  it('says nothing once a person has verified it', () => {
+    const reply = formatTermReply(term({ verified: true, source: 'claude' }));
+    expect(reply).not.toContain('not yet reviewed');
+  });
+
+  it('puts the label on the lead line, not after the alternates', () => {
+    const reply = formatTermReply(
+      term({
+        verified: false,
+        senses: [
+          sense({ definition: 'First.', confidence: 'high', contentFlags: [] }),
+          sense({ definition: 'Second.', confidence: 'high', contentFlags: [] }),
+        ],
+      }),
+    );
+    const [first = '', second = ''] = reply.split('\n');
+    expect(first).toContain('(not yet reviewed)');
+    expect(second).toContain('(also:');
+    expect(second).not.toContain('not yet reviewed');
+  });
+
+  it('stacks with the confidence hedge — both are true and say different things', () => {
+    const reply = formatTermReply(
+      term({
+        verified: false,
+        senses: [sense({ definition: 'x', confidence: 'low', contentFlags: [] })],
+      }),
+    );
+    expect(reply).toContain('not fully sure about this one');
+    expect(reply).toContain('(not yet reviewed)');
+  });
+});
+
 describe('formatTermReply — why a definition is uncertain', () => {
   it('says "not fully sure" when nobody was ever confident', () => {
     const reply = formatTermReply(

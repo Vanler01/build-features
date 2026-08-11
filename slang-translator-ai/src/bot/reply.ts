@@ -33,6 +33,24 @@ function confidenceSuffix(sense: StoredSense): string {
     : ' (this definition may be out of date)';
 }
 
+/**
+ * Says so when no person has confirmed the entry — AI_PROJECTS.md rule 4,
+ * "every Claude answer that could be wrong is labeled".
+ *
+ * Without this, a definition Claude wrote an hour ago and nobody has read is
+ * indistinguishable from one a person checked, for the ninety days it takes
+ * decay to say anything. The whole store — `verified`, the review queue, the
+ * sweeps — exists to track that difference, and this is the one place the
+ * reader who would act on it ever sees it.
+ *
+ * Keyed on `verified` alone rather than on `source === 'claude'`: an
+ * unconfirmed entry is unconfirmed whatever wrote it, and the wording is true
+ * either way. Today every entry is claude-sourced, so the two agree.
+ */
+function reviewSuffix(term: StoredTerm): string {
+  return term.verified ? '' : ' (not yet reviewed)';
+}
+
 function formatSense(term: string, sense: StoredSense): string {
   // Rule 11, the one hard content rule: an example models using the word, and
   // a slur must never carry one. `parseSense` already refuses to store such an
@@ -67,7 +85,7 @@ export function formatTermReply(term: StoredTerm, leadIndex?: number): string {
   if (senses.length === 1) {
     const [only] = senses;
     if (only === undefined) throw new Error('unreachable: length checked above');
-    return formatSense(term.term, only);
+    return `${formatSense(term.term, only)}${reviewSuffix(term)}`;
   }
 
   const index = leadIndex ?? 0;
@@ -84,7 +102,10 @@ export function formatTermReply(term: StoredTerm, leadIndex?: number): string {
   const others = senses
     .filter((_, i) => i !== index)
     .map((s) => `${flagPrefix(s)}${s.definition}`);
-  return `${formatSense(term.term, lead)}\n(also: ${others.join(' · ')})`;
+  // The label sits on the lead line, not after "(also: …)" — it qualifies the
+  // whole entry, and trailing it after the alternates would read as though it
+  // applied only to those.
+  return `${formatSense(term.term, lead)}${reviewSuffix(term)}\n(also: ${others.join(' · ')})`;
 }
 
 /** Join per-term replies for a message that contained more than one slang term. */
