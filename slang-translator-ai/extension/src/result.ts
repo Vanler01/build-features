@@ -46,6 +46,11 @@ async function main(): Promise<void> {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ term }),
+      // Backstop, slightly longer than the server's own 30s Claude timeout so
+      // a real answer normally wins the race. Without it, anything that stops
+      // the server mid-request leaves this popup on "Looking it up…" forever,
+      // with no way for the reader to tell waiting from broken.
+      signal: AbortSignal.timeout(35_000),
     });
 
     const data = (await response.json()) as { reply?: string; error?: string };
@@ -54,11 +59,18 @@ async function main(): Promise<void> {
       return;
     }
     show('reply', data.reply ?? 'No answer came back.');
-  } catch {
-    // The overwhelmingly likely cause, and the one worth naming, is that the
-    // local backend is not running — this is a personal-use setup where the
-    // server is something you start yourself.
-    show('reply', 'Could not reach the local server. Is `npm run serve` running?', true);
+  } catch (error) {
+    // Two different failures, and telling them apart is the difference between
+    // "go start the server" and "wait and try again". AbortSignal.timeout
+    // rejects with a TimeoutError; a dead server rejects with a TypeError.
+    const timedOut = error instanceof DOMException && error.name === 'TimeoutError';
+    show(
+      'reply',
+      timedOut
+        ? 'The lookup took too long and was given up on. Try again.'
+        : 'Could not reach the local server. Is `npm run serve` running?',
+      true,
+    );
   }
 }
 

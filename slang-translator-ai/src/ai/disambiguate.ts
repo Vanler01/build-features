@@ -12,6 +12,7 @@ import type { Sense } from '../store/types.js';
 import { DISAMBIGUATE_MODEL } from './client.js';
 import { AiError } from './errors.js';
 import { callTool } from './run.js';
+import { fence } from './fence.js';
 
 const TOOL_NAME = 'disambiguate_sense';
 
@@ -62,7 +63,7 @@ export async function disambiguateSense(
       system: buildSystem(term, senses),
       tools: [DISAMBIGUATE_TOOL],
       tool_choice: { type: 'tool', name: TOOL_NAME },
-      messages: [{ role: 'user', content: `<message>${context}</message>` }],
+      messages: [{ role: 'user', content: fence(context) }],
     },
     TOOL_NAME,
   );

@@ -12,6 +12,7 @@ import { normalise } from '../store/types.js';
 import { DETECT_MODEL } from './client.js';
 import { AiError } from './errors.js';
 import { callTool } from './run.js';
+import { fence } from './fence.js';
 
 const TOOL_NAME = 'detected_slang';
 
@@ -64,7 +65,7 @@ export async function detectSlang(client: Anthropic, text: string): Promise<stri
       system: SYSTEM,
       tools: [DETECT_TOOL],
       tool_choice: { type: 'tool', name: TOOL_NAME },
-      messages: [{ role: 'user', content: `<message>${text}</message>` }],
+      messages: [{ role: 'user', content: fence(text) }],
     },
     TOOL_NAME,
   );

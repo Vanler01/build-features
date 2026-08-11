@@ -172,17 +172,39 @@ describe('failure handling', () => {
     expect(res.body).not.toContain('exploded');
   });
 
-  it('reports a Claude outage as "nothing unusual here", per the Phase 1 bot path', async () => {
+  it('reports an outage on a BARE TERM as "nothing unusual here"', async () => {
     // Documenting existing behaviour rather than asserting a preference:
-    // handleMessage catches a failed definition and answers NO_SLANG_REPLY,
+    // handleMessage catches a failed *definition* and answers NO_SLANG_REPLY,
     // on the reasoning that a term Claude could not define is, to the user,
     // indistinguishable from one that is not slang. The cost is that a real
-    // outage reads as a confident "not slang" rather than "try again" — worth
-    // knowing, and not something to change from inside the HTTP layer.
+    // outage reads as a confident "not slang" rather than "try again".
     const res = await handleRequest(failingDeps(), post({ term: 'secretterm' }));
     expect(res.status).toBe(200);
     expect(JSON.parse(res.body)).toMatchObject({
       reply: expect.stringContaining('Nothing unusual here'),
     });
+  });
+
+  it('reports an outage on a SENTENCE as a 502, not a false "no slang"', async () => {
+    // The other half, and the one the 502 branch actually exists for: a
+    // sentence goes to detectSlang first, whose failure is not caught inside
+    // handleMessage and so reaches handleRequest. Same outage, different
+    // answer depending on input length — worth pinning so the asymmetry is
+    // visible rather than surprising.
+    const res = await handleRequest(
+      failingDeps(),
+      post({ term: 'is this whole sentence slang or not' }),
+    );
+    expect(res.status).toBe(502);
+    expect(JSON.parse(res.body)).toMatchObject({ error: 'lookup failed — try again' });
+  });
+
+  it('leaks neither the term nor the error text on the 502 path', async () => {
+    const res = await handleRequest(
+      failingDeps(),
+      post({ term: 'secretterm and some more words here' }),
+    );
+    expect(res.body).not.toContain('secretterm');
+    expect(res.body).not.toContain('exploded');
   });
 });

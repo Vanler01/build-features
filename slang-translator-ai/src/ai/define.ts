@@ -13,6 +13,7 @@ import type { Register, Sense } from '../store/types.js';
 import { DEFINE_MODEL } from './client.js';
 import { AiError } from './errors.js';
 import { callTool } from './run.js';
+import { fence } from './fence.js';
 
 const TOOL_NAME = 'define_term';
 const REGISTERS = ['genz', 'genalpha', 'both'];
@@ -98,7 +99,7 @@ export async function defineTerm(
   const prompt =
     context === undefined
       ? `Define: "${term}"`
-      : `Define "${term}" as used in this message: <message>${context}</message>`;
+      : `Define "${term}" as used in this message: ${fence(context)}`;
 
   const input = await callTool(
     client,
