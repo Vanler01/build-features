@@ -17,7 +17,7 @@ function seededStore(): Store {
   const db = openStore(':memory:');
   insertTerm(db, {
     term: 'cap',
-    aliases: ['no cap'],
+    aliases: ['🧢'],
     register: 'both',
     source: 'manual_seed',
     verified: true,
@@ -25,6 +25,17 @@ function seededStore(): Store {
       { definition: 'A lie, or exaggeration.', confidence: 'high', contentFlags: [] },
       { definition: 'A hat.', confidence: 'medium', contentFlags: [] },
     ],
+  });
+  // A genuine multi-word term with a genuine multi-word alias. Both matter
+  // here: the store-first hit has to keep working for phrases, or the fix to
+  // the miss path below would have traded one bug for another.
+  insertTerm(db, {
+    term: 'ate',
+    aliases: ['left no crumbs'],
+    register: 'both',
+    source: 'manual_seed',
+    verified: true,
+    senses: [{ definition: 'Did something excellently.', confidence: 'high', contentFlags: [] }],
   });
   insertTerm(db, {
     term: 'gooning',
@@ -68,8 +79,17 @@ describe('precision — the mandatory cases (AGENTS.md)', () => {
   it('a bare term already in the store answers without calling Claude', async () => {
     const client = routedClient({});
     const deps: Deps = { db, client };
-    const reply = await handleMessage(deps, 'no cap');
+    const reply = await handleMessage(deps, 'cap');
     expect(reply).toContain('A lie, or exaggeration.');
+    expect(client.messages.create).not.toHaveBeenCalled();
+  });
+
+  it('a multi-word term in the store still answers from the store', async () => {
+    // Store-first runs before any word counting, so a phrase that is a real
+    // term never reaches detection at all.
+    const client = routedClient({});
+    const reply = await handleMessage({ db, client }, 'left no crumbs');
+    expect(reply).toContain('Did something excellently.');
     expect(client.messages.create).not.toHaveBeenCalled();
   });
 
@@ -84,6 +104,43 @@ describe('precision — the mandatory cases (AGENTS.md)', () => {
     const reply = await handleMessage({ db, client }, 'he really yeeted that across the room');
     expect(reply).toContain('To throw with force.');
     expect(findTerm(db, 'yeet')?.source).toBe('claude');
+  });
+
+  it('a short sentence is scanned for slang, not stored as a term itself', async () => {
+    // The regression this branch exists for. "he's got rizz" is three words,
+    // which the old threshold read as "the user has named a term" — so the
+    // phrase was handed to defineTerm, which returns the string it was given
+    // verbatim, and a row called `he's got rizz` was written to the store.
+    const client = routedClient({
+      detected_slang: { terms: ['rizz'] },
+      define_term: {
+        register: 'genz',
+        senses: [
+          {
+            definition: 'Charisma, especially flirting skill.',
+            confidence: 'high',
+            content_flags: [],
+          },
+        ],
+      },
+    });
+    const reply = await handleMessage({ db, client }, "he's got rizz");
+
+    expect(reply).toContain('Charisma, especially flirting skill.');
+    expect(findTerm(db, 'rizz')).toBeDefined();
+    expect(findTerm(db, "he's got rizz")).toBeUndefined();
+    // Nothing phrase-shaped reached the store under any spelling.
+    const terms = db.prepare('SELECT term FROM terms').all() as { term: string }[];
+    expect(terms.map((t) => t.term)).not.toContain("he's got rizz");
+  });
+
+  it('a two-word message with no slang in it stores nothing at all', async () => {
+    const client = routedClient({ detected_slang: { terms: [] } });
+    const before = (db.prepare('SELECT COUNT(*) AS n FROM terms').get() as { n: number }).n;
+    const reply = await handleMessage({ db, client }, 'good morning');
+
+    expect(reply).toBe(NO_SLANG_REPLY);
+    expect((db.prepare('SELECT COUNT(*) AS n FROM terms').get() as { n: number }).n).toBe(before);
   });
 
   it('"nothing unusual here" is a passing answer for an ordinary sentence', async () => {
@@ -178,7 +235,7 @@ describe('content flags survive the full flow — flag, and show', () => {
 describe('privacy — lookups never carry message text', () => {
   it('records only a term id, timestamp, and hit/miss flag', async () => {
     const client = routedClient({});
-    await handleMessage({ db, client }, 'no cap');
+    await handleMessage({ db, client }, 'cap');
 
     const rows = db.prepare('SELECT * FROM lookups').all() as Record<string, unknown>[];
     expect(rows.length).toBeGreaterThan(0);
@@ -197,9 +254,11 @@ describe('/report', () => {
   });
 
   it('finds a multi-word alias before falling back to the first word', () => {
+    // Without the whole-argument attempt this reports "left", which is not a
+    // term at all.
     const client = routedClient({});
-    const result = handleReport({ db, client }, 'no cap');
-    expect(result).toContain('"cap"');
+    const result = handleReport({ db, client }, 'left no crumbs');
+    expect(result).toContain('"ate"');
   });
 
   it('says plainly when the term is not stored', () => {

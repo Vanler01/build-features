@@ -24,10 +24,24 @@ slang in it means.
 /report <term> [why it's wrong] — flag a definition that's wrong. The cheapest way to help \
 fix the store.`;
 
-// A message this short is almost always the user naming a specific term
-// they want defined, not a sentence to scan for slang in context.
-function looksLikeBareTerm(text: string): boolean {
-  return text.trim().split(/\s+/).filter(Boolean).length <= 3;
+/**
+ * One word, so there is nothing to detect — the user has named the term.
+ *
+ * This used to be "three words or fewer", which was wrong in a way that filled
+ * the store with junk. `defineTerm` returns the string it was handed, verbatim
+ * (`ai/define.ts` — Claude never renames it), so "he's got rizz" missed the
+ * store, took this branch, and was written into `terms` as a row literally
+ * called `he's got rizz`: unverified, queued for review, a Sonnet call spent,
+ * and a headword nobody will ever look up again.
+ *
+ * Lowering the threshold was not enough on its own, because real multi-word
+ * terms exist — "left no crumbs", "hits different", "green flag". Those still
+ * answer instantly on the store-first hit above. What changed is only the
+ * *miss* path: it now asks detection what the slang in the message actually
+ * is, instead of assuming the whole message was the term.
+ */
+function isSingleWord(text: string): boolean {
+  return text.trim().split(/\s+/).filter(Boolean).length === 1;
 }
 
 /** Define an unknown term via Claude, write it as unverified, and read it back. */
@@ -49,7 +63,7 @@ export async function handleMessage(deps: Deps, text: string): Promise<string> {
     return formatTermReply(direct);
   }
 
-  if (looksLikeBareTerm(text)) {
+  if (isSingleWord(text)) {
     let stored;
     try {
       stored = await defineAndStore(deps, text.trim());
@@ -101,8 +115,8 @@ export function handleReport(deps: Deps, argsText: string): string {
     return "Usage: /report <term> [why it's wrong]";
   }
 
-  // Aliases can be multi-word ("no cap"), so try the whole argument as the
-  // term before falling back to just its first word.
+  // Terms and aliases can be multi-word ("left no crumbs"), so try the whole
+  // argument as the term before falling back to just its first word.
   const wholeMatch = findTerm(deps.db, trimmed);
   if (wholeMatch !== undefined) {
     reportTerm(deps.db, wholeMatch.id, undefined);
