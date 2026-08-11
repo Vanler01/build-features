@@ -45,7 +45,9 @@ export function formatEntry(entry: StoredTerm): string {
       lines.push('     !! POLICY VIOLATION: a slur must carry no usage example.');
       lines.push('        Remove it before verifying this entry.');
     } else if (sense.example !== undefined) {
-      lines.push(`     e.g. "${sense.example}"`);
+      // Curly, matching the bot reply — a dialogue example carrying its own
+      // straight quotes must not blur into the wrapper.
+      lines.push(`     e.g. “${sense.example}”`);
     }
     lines.push(`     confidence: ${decayed}   last seen: ${sense.lastSeen.slice(0, 10)}`);
   });

@@ -40,7 +40,15 @@ function formatSense(term: string, sense: StoredSense): string {
   // one on the door the reader is standing at, and a row that arrives by
   // migration, fixture or a future write path bypasses the validator entirely.
   const showExample = sense.example !== undefined && !sense.contentFlags.includes('slur');
-  const example = showExample ? ` "${sense.example ?? ''}"` : '';
+  // Curly quotes around the example, straight quotes around the term. Not
+  // decoration: the two are doing different jobs. The term is being *mentioned*
+  // ("bet" is the word we are defining), while the example is *quoted speech*.
+  // Wrapping both in the same straight quote turned a dialogue example into
+  // ""Meet at 7?" "Bet."", where the reader cannot see where the example
+  // starts. Nesting straight inside curly is what typography does with a
+  // quote inside a quote, and it leaves the 21 seed examples containing
+  // apostrophes completely untouched.
+  const example = showExample ? ` “${sense.example ?? ''}”` : '';
   return `${flagPrefix(sense)}"${term}" = ${sense.definition}${example}${confidenceSuffix(sense)}`;
 }
 

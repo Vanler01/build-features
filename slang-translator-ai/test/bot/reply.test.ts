@@ -56,7 +56,45 @@ describe('formatTermReply — single sense', () => {
     const reply = formatTermReply(
       term({ senses: [sense({ definition: 'x', confidence: 'high', contentFlags: [] })] }),
     );
-    expect(reply).not.toContain('""');
+    expect(reply).not.toContain('“”');
+  });
+
+  it('does not blur a dialogue example into its own wrapper', () => {
+    // The seed's "bet" entry is dialogue and carries straight quotes of its
+    // own; a straight-quoted wrapper rendered it as ""Meet at 7?" "Bet."".
+    const reply = formatTermReply(
+      term({
+        term: 'bet',
+        senses: [
+          sense({
+            definition: 'Agreement.',
+            example: '"Meet at 7?" "Bet."',
+            confidence: 'high',
+            contentFlags: [],
+          }),
+        ],
+      }),
+    );
+    expect(reply).toContain('“"Meet at 7?" "Bet."”');
+    expect(reply).not.toContain('""Meet at 7?');
+  });
+
+  it('passes an apostrophe through untouched', () => {
+    // 21 of the 54 seed examples contain one; a fix that mangles them would
+    // be worse than the wart it replaces.
+    const reply = formatTermReply(
+      term({
+        senses: [
+          sense({
+            definition: 'x',
+            example: "That's cap, he never said that.",
+            confidence: 'high',
+            contentFlags: [],
+          }),
+        ],
+      }),
+    );
+    expect(reply).toContain("That's cap, he never said that.");
   });
 
   it('flags a low-confidence sense rather than presenting it as certain', () => {

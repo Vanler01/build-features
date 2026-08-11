@@ -109,7 +109,9 @@ describe('formatEntry — rule 11', () => {
         ],
       }),
     );
-    expect(out).toContain("e.g. \"he's got mad rizz\"");
+    // Straight apostrophe inside, curly wrapper outside: the example text
+    // itself must pass through byte-for-byte.
+    expect(out).toContain('e.g. “he\'s got mad rizz”');
     expect(out).not.toContain('POLICY VIOLATION');
   });
 });
