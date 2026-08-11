@@ -34,10 +34,30 @@ npm run review -- top                            # most looked-up terms
 npm run review -- sweep                          # queue stale + low-confidence entries
 npm run review -- stats
 ```
+
+Correcting an entry (Phase 5) — sense numbers are the ones `show` prints:
+```bash
+npm run review -- edit <term> <n> = <definition>       # rewrite one sense
+npm run review -- example <term> <n> = <text>          # empty text clears it
+npm run review -- flags <term> <n> = vulgar,slur       # empty clears them
+npm run review -- region <term> <n> = UK               # empty clears it
+npm run review -- confidence <term> <n> = medium
+npm run review -- sense add <term> = <definition>
+npm run review -- sense rm <term> <n>                  # never the last one
+npm run review -- add <term> = <definition> --by <you> # the only manual_seed path
+```
+Editing never promotes anything to verified and never rewrites `source` — a
+corrected Claude definition is still a Claude definition. Editing an entry that
+is *already* verified needs `--by`, because the name on it belongs to whoever
+confirmed the old wording; the change is validated as a whole sense, so
+flagging one as a slur while it still carries an example is refused (rule 11).
+
 `list` and `top` are ordered by how often a term is looked up, so the entries
 being served most are reviewed first. `alias` is for irregular spellings only —
 plurals, `-ing`/`-ed` and run-together phrases resolve on their own via
-`src/store/variants.ts` and are never written to the database.
+`src/store/variants.ts` and are never written to the database. An alias must
+mean the *same* thing as its term: a negation or an antonym gets its own entry,
+because "no cap" aliased to "cap" answers with the opposite meaning.
 The `--` matters: without it npm eats `--by` and the reviewer name is lost.
 `SLANG_REVIEWER=<you>` works instead of the flag. The CLI needs no API keys and
 makes no network calls — re-verification is a person reading an entry, not a

@@ -10,6 +10,7 @@
  */
 
 import { openStore, type Store } from '../store/db.js';
+import { addSense, addTerm, editSense, removeSense, type SenseChange } from './edit.js';
 import { formatEntry } from './format.js';
 import {
   addAlias,
@@ -37,6 +38,21 @@ const USAGE = `Usage: npm run review [command]
   sweep                     queue stale and low-confidence entries
   stats                     queue counts
 
+Correcting an entry — sense numbers are the ones "show" prints:
+
+  edit <term> <n> = <definition>    rewrite one sense
+  example <term> <n> = <text>       set a usage example; empty text clears it
+  flags <term> <n> = vulgar,slur    set content flags; empty clears them
+  region <term> <n> = UK            mark where a sense holds; empty clears it
+  confidence <term> <n> = medium    high | medium | low
+  sense add <term> = <definition>   add a sense to an existing term
+  sense rm <term> <n>               remove a sense (never the last one)
+  add <term> = <definition> --by <you>   hand-write a new term
+
+Editing never promotes anything to verified, and never rewrites where an entry
+came from. Editing an entry that is *already* verified needs --by, because the
+name on it belongs to whoever confirmed the old wording.
+
 The reviewer name may also come from SLANG_REVIEWER instead of --by.`;
 
 /** Pull `--by <name>` out of the argument list, returning it and the rest. */
@@ -54,6 +70,57 @@ function extractReviewer(args: readonly string[]): { reviewer: string; rest: str
     if (arg !== undefined) rest.push(arg);
   }
   return { reviewer, rest };
+}
+
+/**
+ * Split `<term> <n> = <value>` — "edit no cap 1 = honestly, no exaggeration".
+ *
+ * The sense number is taken as the last token before the `=` rather than the
+ * second, because terms are routinely multi-word here and "left no crumbs 1"
+ * has to parse the same way "cap 1" does. Everything after the first `=` is
+ * the value, so a definition may contain one.
+ */
+function parseSenseTarget(
+  command: string,
+  target: string,
+): { term: string; senseNumber: number; value: string } {
+  const eq = target.indexOf('=');
+  if (eq === -1) {
+    throw new Error(`Usage: npm run review -- ${command} <term> <n> = <value>`);
+  }
+  const tokens = target.slice(0, eq).trim().split(/\s+/).filter(Boolean);
+  const senseNumber = Number(tokens.pop());
+  const term = tokens.join(' ');
+  if (term === '' || !Number.isInteger(senseNumber) || senseNumber < 1) {
+    throw new Error(`Usage: npm run review -- ${command} <term> <n> = <value>`);
+  }
+  return { term, senseNumber, value: target.slice(eq + 1).trim() };
+}
+
+/** Split `<term> <n>` for the commands that take no value, like `sense rm`. */
+function parseTermAndNumber(
+  command: string,
+  target: string,
+): { term: string; senseNumber: number } {
+  const tokens = target.trim().split(/\s+/).filter(Boolean);
+  const senseNumber = Number(tokens.pop());
+  const term = tokens.join(' ');
+  if (term === '' || !Number.isInteger(senseNumber) || senseNumber < 1) {
+    throw new Error(`Usage: npm run review -- ${command} <term> <n>`);
+  }
+  return { term, senseNumber };
+}
+
+/** Apply one field change and show the entry back, so the result is visible. */
+function cmdEdit(
+  db: Store,
+  command: string,
+  target: string,
+  reviewer: string,
+  toChange: (value: string) => SenseChange,
+): void {
+  const { term, senseNumber, value } = parseSenseTarget(command, target);
+  console.log(formatEntry(editSense(db, term, senseNumber, toChange(value), reviewer)));
 }
 
 function cmdList(db: Store): void {
@@ -169,6 +236,60 @@ function main(): void {
         }
         const outcome = addAlias(db, termPart?.trim() ?? '', variantPart.trim());
         console.log(`"${variantPart.trim()}" now resolves to "${outcome.term}".`);
+        break;
+      }
+      case 'edit':
+        cmdEdit(db, 'edit', target, reviewer, (definition) => ({ definition }));
+        break;
+      case 'example':
+        // An empty right-hand side clears it. That is the fix for a slur that
+        // arrived carrying a usage example, so it has to be reachable.
+        cmdEdit(db, 'example', target, reviewer, (v) => ({ example: v === '' ? null : v }));
+        break;
+      case 'flags':
+        cmdEdit(db, 'flags', target, reviewer, (v) => ({
+          contentFlags: v.split(',').map((f) => f.trim()).filter((f) => f !== ''),
+        }));
+        break;
+      case 'region':
+        cmdEdit(db, 'region', target, reviewer, (v) => ({ region: v === '' ? null : v }));
+        break;
+      case 'confidence':
+        cmdEdit(db, 'confidence', target, reviewer, (confidence) => ({ confidence }));
+        break;
+      case 'sense': {
+        const [sub = '', ...rest2] = target.split(/\s+/);
+        const remainder = rest2.join(' ');
+        if (sub === 'add') {
+          const eq = remainder.indexOf('=');
+          if (eq === -1) {
+            throw new Error('Usage: npm run review -- sense add <term> = <definition>');
+          }
+          const entry = addSense(
+            db,
+            remainder.slice(0, eq).trim(),
+            remainder.slice(eq + 1).trim(),
+            reviewer,
+          );
+          console.log(formatEntry(entry));
+          break;
+        }
+        if (sub === 'rm') {
+          const { term, senseNumber } = parseTermAndNumber('sense rm', remainder);
+          console.log(formatEntry(removeSense(db, term, senseNumber, reviewer)));
+          break;
+        }
+        throw new Error('Usage: npm run review -- sense add|rm ...');
+      }
+      case 'add': {
+        const eq = target.indexOf('=');
+        if (eq === -1) {
+          throw new Error('Usage: npm run review -- add <term> = <definition> --by <you>');
+        }
+        const name = target.slice(0, eq).trim();
+        const entry = addTerm(db, name, target.slice(eq + 1).trim(), reviewer);
+        console.log(`"${entry.term}" added and verified by ${reviewer.trim()}.\n`);
+        console.log(formatEntry(entry));
         break;
       }
       case 'top':

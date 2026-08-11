@@ -115,3 +115,26 @@ describe('formatEntry — rule 11', () => {
     expect(out).not.toContain('POLICY VIOLATION');
   });
 });
+
+describe('formatEntry — region', () => {
+  it('shows where a marked sense holds', () => {
+    // Settable from the CLI, so it has to be visible here: a field you can
+    // change but cannot see is one you will change by accident.
+    const out = formatEntry(
+      term({
+        senses: [
+          sense({ definition: 'Very.', confidence: 'high', contentFlags: [], region: 'UK' }),
+        ],
+      }),
+    );
+    expect(out).toContain('Very. (UK)');
+  });
+
+  it('says nothing at all for an unmarked sense', () => {
+    // An absent region means "not known to be regional", which is a different
+    // claim from "holds everywhere" and must not be rendered as either.
+    const out = formatEntry(term());
+    expect(out).toContain('Charisma.');
+    expect(out).not.toMatch(/Charisma\. \(/);
+  });
+});

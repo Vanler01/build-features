@@ -46,7 +46,11 @@ export interface Sense {
 /** A term and everything known about it. */
 export interface Term {
   readonly term: string;
-  /** Spelling variants that resolve to this term: "no cap" / "nocap" / "🧢". */
+  /**
+   * Spelling variants that resolve to this term: "cap" / "🧢", "ate" / "left
+   * no crumbs". A second spelling of the *same* meaning only — a negation or
+   * an antonym is a different term (see `store/variants.ts`).
+   */
   readonly aliases: readonly string[];
   readonly register: Register;
   readonly senses: readonly Sense[];
