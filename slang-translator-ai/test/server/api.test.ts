@@ -103,6 +103,26 @@ describe('CORS', () => {
     expect(res.headers['Access-Control-Allow-Origin']).toBe(EXTENSION_ORIGIN);
   });
 
+  it.each([
+    ['Chromium', 'chrome-extension://abcdefghijklmnopabcdefghijklmnop'],
+    ['Firefox / Zen', 'moz-extension://6f2c1a90-1b3d-4a55-9c11-8f3b2d4e5a67'],
+    ['Safari', 'safari-web-extension://A1B2C3D4-5678-90AB-CDEF-1234567890AB'],
+  ])('grants a %s extension origin', async (_engine, origin) => {
+    // The extension is loaded unpacked in whatever browser is available, and
+    // each engine presents a different scheme. Hardcoding Chromium's meant
+    // Firefox got no CORS grant and every lookup failed.
+    const res = await handleRequest(deps(), post({ term: 'rizz' }, origin));
+    expect(res.headers['Access-Control-Allow-Origin']).toBe(origin);
+  });
+
+  it('is not fooled by a scheme merely containing an extension prefix', async () => {
+    const res = await handleRequest(
+      deps(),
+      post({ term: 'rizz' }, 'https://evil.example/moz-extension://'),
+    );
+    expect(res.headers['Access-Control-Allow-Origin']).toBeUndefined();
+  });
+
   it('grants nothing to a web page — any site can reach loopback too', async () => {
     const res = await handleRequest(deps(), post({ term: 'rizz' }, 'https://example.com'));
     expect(res.headers['Access-Control-Allow-Origin']).toBeUndefined();

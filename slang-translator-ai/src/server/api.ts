@@ -37,6 +37,21 @@ export interface ApiResponse {
 }
 
 /**
+ * The origin schemes a browser extension can present.
+ *
+ * One per engine, because the extension is loaded unpacked in whichever
+ * browser is to hand: Chromium uses `chrome-extension://`, Gecko (Firefox,
+ * Zen, LibreWolf) uses `moz-extension://`, and Safari uses
+ * `safari-web-extension://`. Hardcoding the Chromium one meant every lookup
+ * from Firefox was refused CORS and failed with no useful error.
+ */
+const EXTENSION_SCHEMES = [
+  'chrome-extension://',
+  'moz-extension://',
+  'safari-web-extension://',
+] as const;
+
+/**
  * Only a browser extension may call this.
  *
  * Not `*`: the server listens on loopback, but any web page the user visits
@@ -45,7 +60,7 @@ export interface ApiResponse {
  * caller that should ever appear.
  */
 export function corsHeaders(origin: string | undefined): Record<string, string> {
-  if (origin === undefined || !origin.startsWith('chrome-extension://')) return {};
+  if (origin === undefined || !EXTENSION_SCHEMES.some((s) => origin.startsWith(s))) return {};
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',

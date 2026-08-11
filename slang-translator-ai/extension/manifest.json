@@ -4,8 +4,16 @@
   "version": "0.1.0",
   "description": "Select a word, right-click, and get a plain-English definition.",
   "permissions": ["contextMenus"],
+  "host_permissions": ["http://127.0.0.1:8787/*"],
   "background": {
+    "scripts": ["dist/background.js"],
     "service_worker": "dist/background.js",
     "type": "module"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "slang-translator@personal",
+      "strict_min_version": "121.0"
+    }
   }
 }

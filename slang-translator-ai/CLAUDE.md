@@ -88,10 +88,14 @@ invoking a lookup on their own selection.
     a reason for an age gate that cannot be verified anyway.
 
 ### The extension
-15. **`contextMenus` + `activeTab` only.** No content script, no
-    `host_permissions` list, never `<all_urls>`. As shipped it is
-    `contextMenus` *alone* — `activeTab` proved unnecessary once nothing
-    touched the page. Treat that as the new ceiling, not a spare allowance.
+15. **`contextMenus` + one loopback host permission.** No content script,
+    never `<all_urls>`, never a list of sites. `activeTab` proved unnecessary
+    once nothing touched the page and is not requested. The single
+    `host_permissions` entry is `http://127.0.0.1:8787/*` — required because
+    Firefox's MV3 cross-origin handling does not reliably honour the server's
+    CORS headers for an extension page fetching localhost. It grants one port
+    on your own machine. The test of this rule is "can the extension reach the
+    web?", and the answer must stay no.
 16. **Only the selected term leaves the browser.** Never the page, the
     surrounding conversation, the URL, or a username. `OnClickData` offers
     `pageUrl` and `frameUrl` and the listener is handed a `tab`; reading any
