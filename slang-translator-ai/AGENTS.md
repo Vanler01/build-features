@@ -11,8 +11,16 @@ npm test                    # vitest
 npm run lint                # eslint + tsc --noEmit
 npm run seed                # load the seed vocabulary (idempotent)
 npm run review              # work the review queue — see below
+npm run serve               # backend for the extension, 127.0.0.1:8787
+npm run build:extension     # extension/src/*.ts → extension/dist/*.js
 ```
 Note there is no `scrape` command, and there should never be one.
+
+### Extension (Phase 3)
+Load `extension/` unpacked at `chrome://extensions` with Developer mode on;
+`npm run serve` must be running. Details and the permission rationale are in
+`extension/README.md`. The manifest asks for `contextMenus` and nothing else —
+no `activeTab`, no `host_permissions`, no content script.
 
 ### Review queue (Phase 2)
 ```bash
@@ -47,10 +55,14 @@ Do **not** use the daemon-class agents from the root `AGENTS.md` here.
 ## File ownership (planned)
 | area | owner agent |
 |---|---|
-| `src/bot/*.ts` | `slang-bot-specialist` |
+| `src/bot/*.ts`, `src/server/*.ts` | `slang-bot-specialist` |
 | `src/store/*.ts`, `src/review/*.ts`, `data/seed.json` | `slang-cache-validator` |
 | definition wording, content flags | `slang-content-filter` |
-| `extension/manifest.json`, `extension/background.ts` | `slang-extension-specialist` |
+| `extension/manifest.json`, `extension/src/*.ts` | `slang-extension-specialist` |
+
+(The ownership table predates the code and said `extension/background.ts`; the
+file landed at `extension/src/background.ts` because the extension needs its
+own TypeScript build.)
 
 ## Testing rules
 - Mock Telegram and Claude. Nothing may reach a network — and since there is no

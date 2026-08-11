@@ -6,7 +6,8 @@ Decodes Gen Z and Gen Alpha slang the moment you hit it — a term, an acronym, 
 phrase — and gives back a short plain definition plus an example. Telegram bot
 first, browser extension second, one vocabulary store behind both.
 
-> Status: Phases 0–2 built (seed, bot, review queue). Phase 3 (extension) next.
+> Status: Phases 0–3 built (seed, bot, review queue, extension + backend).
+> Phase 4 (aliases, regional senses, prioritisation) next.
 
 ---
 
@@ -264,8 +265,25 @@ had to change rather than be worked around:
   often, answered with low confidence — is implemented as its own sweep rather
   than being treated as a restatement of the first.
 
-**Phase 3 — Extension**
+**Phase 3 — Extension** ✅
 Manifest V3, `contextMenus`, `activeTab`. Same store as the bot.
+
+Two things the spec did not anticipate:
+
+- **It needed a backend, which did not exist.** Rule 17 forbids an API key in
+  the extension bundle, and until now the only entry points were a
+  long-polling bot and a CLI. `src/server/` is a one-endpoint HTTP surface on
+  loopback that calls the *same* `handleMessage` the bot does — one lookup
+  path and one formatter across both clients, so the content rules are
+  enforced in one place rather than re-implemented in the extension where they
+  could drift.
+- **`activeTab` turned out to be unnecessary.** `contextMenus.onClicked`
+  delivers `selectionText` on its own, and nothing in the extension ever
+  touches the page, so the manifest ships with `contextMenus` alone — tighter
+  than §6 and rule 15 allow rather than merely within them.
+
+A selection cap (300 characters) enforces "never the page" against the obvious
+defeat, which is Ctrl+A followed by a right-click.
 
 **Phase 4 — Polish**
 Aliases and variants, regional senses, most-looked-up prioritisation.
@@ -309,8 +327,15 @@ nobody thought to integrate with — which a per-site content script would not.
 
 ## 13. Open questions
 
-- Personal use only, or shared with friends? Sharing changes the extension's
-  publishing and ToS position. Can wait until Phase 3.
+- ~~Personal use only, or shared with friends?~~ **Personal use, for now** —
+  which is what §6 and rule 18 already required regardless ("unpublished and
+  personal-use until each target platform's terms have been reviewed
+  individually"), so Phase 3 built for it rather than treating the question as
+  open. Still genuinely undecided is whether to *do* that ToS review and
+  share. It is a bigger change than it sounds: the backend currently binds
+  loopback with no auth and no rate limiting, and sharing turns it into a
+  hosted service holding a Claude key on other people's behalf. Not a
+  deployment step — a different product with different obligations.
 - Do regional and community-specific senses need their own rows, or a note on
   the sense? Phase 4.
 

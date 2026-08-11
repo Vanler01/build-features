@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Slang Translator</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --fg: #1a1a1a;
+        --muted: #6b6b6b;
+        --bg: #ffffff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --fg: #ececec;
+          --muted: #9a9a9a;
+          --bg: #1e1e1e;
+        }
+      }
+      body {
+        margin: 0;
+        padding: 18px 20px;
+        background: var(--bg);
+        color: var(--fg);
+        font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      #term {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 10px;
+        word-break: break-word;
+      }
+      #reply {
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .muted {
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="term"></div>
+    <div id="reply" class="muted">Looking it up…</div>
+    <script type="module" src="dist/result.js"></script>
+  </body>
+</html>

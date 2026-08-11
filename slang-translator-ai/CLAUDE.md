@@ -89,11 +89,18 @@ invoking a lookup on their own selection.
 
 ### The extension
 15. **`contextMenus` + `activeTab` only.** No content script, no
-    `host_permissions` list, never `<all_urls>`.
+    `host_permissions` list, never `<all_urls>`. As shipped it is
+    `contextMenus` *alone* — `activeTab` proved unnecessary once nothing
+    touched the page. Treat that as the new ceiling, not a spare allowance.
 16. **Only the selected term leaves the browser.** Never the page, the
-    surrounding conversation, the URL, or a username.
+    surrounding conversation, the URL, or a username. `OnClickData` offers
+    `pageUrl` and `frameUrl` and the listener is handed a `tab`; reading any
+    of them is a defect. A 300-character cap on the selection is part of this
+    rule, not an ergonomic detail — without it, Ctrl+A sends the page.
 17. **No API key in the extension bundle.** It talks to your backend; the
-    backend holds keys.
+    backend holds keys. That backend is `src/server/`, one endpoint, bound to
+    127.0.0.1, CORS granted only to `chrome-extension://` origins, and it logs
+    method/path/status but never the term.
 18. **Unpublished and personal-use** until each target platform's terms have
     been reviewed individually.
 

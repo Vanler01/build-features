@@ -10,5 +10,5 @@ export default tseslint.config(
       'max-len': ['error', { code: 100, ignoreUrls: true }],
     },
   },
-  { ignores: ['dist/**', 'node_modules/**'] },
+  { ignores: ['dist/**', 'node_modules/**', 'extension/dist/**'] },
 );

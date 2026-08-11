@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Slang Translator (personal)",
+  "version": "0.1.0",
+  "description": "Select a word, right-click, and get a plain-English definition.",
+  "permissions": ["contextMenus"],
+  "background": {
+    "service_worker": "dist/background.js",
+    "type": "module"
+  }
+}

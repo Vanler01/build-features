@@ -3,14 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "tsx src/bot/index.ts",
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "lint": "eslint . && tsc --noEmit",
+    "lint": "eslint . && tsc --noEmit && tsc -p extension/tsconfig.json --noEmit",
     "seed": "tsx src/store/load-seed.ts",
-    "review": "tsx src/review/cli.ts"
+    "review": "tsx src/review/cli.ts",
+    "serve": "tsx src/server/index.ts",
+    "build:extension": "tsc -p extension/tsconfig.json"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",
@@ -19,6 +23,7 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",
+    "@types/chrome": "^0.2.5",
     "@types/node": "^22.9.0",
     "eslint": "^9.15.0",
     "tsx": "^4.19.0",
