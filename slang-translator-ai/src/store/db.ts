@@ -22,6 +22,21 @@ interface MigrationRow {
 
 export function openStore(path: string): Store {
   const db = new Database(path);
+
+  // Phase 3 made concurrent writers real: `npm run dev` (the bot) and
+  // `npm run serve` (the extension backend) are two processes on one file, and
+  // both write on a cache miss. SQLite's default rollback journal takes an
+  // exclusive lock for a write, and better-sqlite3's default busy timeout is
+  // 0 — so the second writer throws SQLITE_BUSY instantly. That error would be
+  // swallowed by the try/catch around defineAndStore in bot/core.ts and shown
+  // to the user as "nothing unusual here", losing the definition silently.
+  //
+  // WAL lets readers run during a write; the busy timeout makes a second
+  // writer wait its turn instead of failing. `:memory:` ignores WAL, which is
+  // why the test suite is unaffected.
+  db.pragma('journal_mode = WAL');
+  db.pragma('busy_timeout = 5000');
+
   migrate(db);
   // Off by default in SQLite; without it ON DELETE CASCADE is silently a no-op.
   // Set *after* migrating — see migrate() for why they must be off during.

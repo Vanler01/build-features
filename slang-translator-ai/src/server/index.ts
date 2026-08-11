@@ -12,7 +12,7 @@ import { createServer, type IncomingMessage } from 'node:http';
 import { createClient } from '../ai/client.js';
 import { loadConfig } from '../config.js';
 import { openStore } from '../store/db.js';
-import { handleRequest, MAX_SELECTION_CHARS } from './api.js';
+import { corsHeaders, handleRequest, MAX_SELECTION_CHARS } from './api.js';
 
 const HOST = '127.0.0.1';
 const DEFAULT_PORT = 8787;
@@ -51,7 +51,12 @@ function main(): void {
         body === undefined
           ? {
               status: 413,
-              headers: { 'Content-Type': 'application/json' },
+              // CORS headers here too, or the extension sees an opaque CORS
+              // failure instead of a readable "too long". Unreachable from the
+              // extension today (its 300-char cap is far under MAX_BODY_BYTES
+              // even in 4-byte UTF-8), but an error the caller cannot read is
+              // not worth leaving in place for the one time it is reached.
+              headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
               body: JSON.stringify({ error: 'selection too long' }),
             }
           : await handleRequest(deps, {

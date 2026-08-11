@@ -25,11 +25,16 @@ const MENU_ID = 'slang-lookup';
 const MAX_SELECTION_CHARS = 300;
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: MENU_ID,
-    // %s is the selection; Chrome truncates it in the menu label for us.
-    title: 'What does “%s” mean?',
-    contexts: ['selection'],
+  // onInstalled also fires on *update*, where the menu id already exists and
+  // `create` fails with "duplicate id". Clearing first makes this idempotent,
+  // which matters for an extension reloaded by hand after every rebuild.
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: MENU_ID,
+      // %s is the selection; Chrome truncates it in the menu label for us.
+      title: 'What does “%s” mean?',
+      contexts: ['selection'],
+    });
   });
 });
 

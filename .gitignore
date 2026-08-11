@@ -18,6 +18,12 @@ node_modules/
 dist/
 *.sqlite
 *.sqlite3
+# WAL mode writes sidecar files next to the database; the glob above misses
+# them because the suffix comes after the extension.
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
 *.db
 
 # Tool caches

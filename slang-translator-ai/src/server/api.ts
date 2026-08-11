@@ -44,13 +44,20 @@ export interface ApiResponse {
  * against this store and learn that it exists. An extension origin is the only
  * caller that should ever appear.
  */
-function corsHeaders(origin: string | undefined): Record<string, string> {
+export function corsHeaders(origin: string | undefined): Record<string, string> {
   if (origin === undefined || !origin.startsWith('chrome-extension://')) return {};
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Max-Age': '86400',
+    // Private Network Access: a request from any other context to a loopback
+    // address is a "private network request", and Chrome refuses the preflight
+    // without this header. Extension origins appear to be exempt today, which
+    // is an undocumented classification that can change without notice. One
+    // header now beats every lookup failing after a browser update. It grants
+    // nothing extra: it is only ever sent alongside an extension origin.
+    'Access-Control-Allow-Private-Network': 'true',
   };
 }
 

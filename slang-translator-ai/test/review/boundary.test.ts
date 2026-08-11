@@ -22,9 +22,9 @@ function filesUnder(dir: string): string[] {
 }
 
 describe('the bot path cannot reach the promotion code', () => {
-  it('no module under bot/, ai/ or store/ imports from review/', () => {
+  it('no module under bot/, ai/, store/ or server/ imports from review/', () => {
     const offenders: string[] = [];
-    for (const dir of ['bot', 'ai', 'store']) {
+    for (const dir of ['bot', 'ai', 'store', 'server']) {
       for (const file of filesUnder(dir)) {
         const source = readFileSync(file, 'utf8');
         if (/from\s+['"][^'"]*review\//.test(source)) offenders.push(file);
@@ -35,7 +35,7 @@ describe('the bot path cannot reach the promotion code', () => {
 
   it('review/ is the only place that writes verified = 1', () => {
     const offenders: string[] = [];
-    for (const dir of ['bot', 'ai', 'store']) {
+    for (const dir of ['bot', 'ai', 'store', 'server']) {
       for (const file of filesUnder(dir)) {
         const source = readFileSync(file, 'utf8');
         // `verified = ?` in the seed loader's INSERT is bound from an

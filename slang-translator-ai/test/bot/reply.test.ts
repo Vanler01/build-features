@@ -127,6 +127,33 @@ describe('formatTermReply — multiple senses', () => {
     expect(reply).toContain('An upper limit.');
   });
 
+  it('keeps the flag on a secondary sense, not just the lead one', () => {
+    // Rule 12 puts the flag beside the definition — every definition. A term
+    // whose *second* sense is the offensive one showed it unflagged, and a
+    // bare-term lookup (all the extension ever does) never leads with it.
+    const reply = formatTermReply(
+      term({
+        term: 'twoSense',
+        senses: [
+          sense({ definition: 'An ordinary meaning.', confidence: 'high', contentFlags: [] }),
+          sense({
+            definition: 'A derogatory term for a group.',
+            confidence: 'high',
+            contentFlags: ['slur'],
+          }),
+        ],
+      }),
+    );
+    const alsoLine = reply.split('\n')[1] ?? '';
+    expect(alsoLine).toContain('[slur]');
+    expect(alsoLine).toContain('A derogatory term for a group.');
+  });
+
+  it('leaves an unflagged secondary sense clean', () => {
+    const reply = formatTermReply(cap, 0);
+    expect(reply.split('\n')[1] ?? '').not.toContain('[');
+  });
+
   it('defaults to the first sense when no context is available', () => {
     const reply = formatTermReply(cap);
     const leadLine = reply.split('\n')[0] ?? '';

@@ -75,7 +75,15 @@ export function formatTermReply(term: StoredTerm, leadIndex?: number): string {
   if (lead === undefined) {
     throw new Error(`formatTermReply: lead index ${index} out of range for "${term.term}"`);
   }
-  const others = senses.filter((_, i) => i !== index).map((s) => s.definition);
+  // Flags travel with every sense, not just the lead one. Rule 12 says the
+  // flag sits beside the definition; it says nothing about only the first.
+  // Dropping them here meant a term whose *secondary* sense is a slur showed
+  // that sense unflagged — and a bare-term lookup (which the extension always
+  // is) has no lead index, so the flagged sense was never the one that got its
+  // flag shown.
+  const others = senses
+    .filter((_, i) => i !== index)
+    .map((s) => `${flagPrefix(s)}${s.definition}`);
   return `${formatSense(term.term, lead)}\n(also: ${others.join(' · ')})`;
 }
 

@@ -34,8 +34,13 @@ That is the entire list. No `host_permissions`, no `activeTab`, no
 - **No `activeTab`.** Rule 15 permits it; we found we never need it, because
   we never touch the page. Shipping tighter than the rule allows.
 - **No `host_permissions`.** The fetch to the backend is authorised by the
-  server's CORS policy, which grants only `chrome-extension://` origins.
-  If your Chrome build blocks the request anyway, the minimal fix is a single
+  server's CORS policy, which grants only `chrome-extension://` origins. The
+  server also sends `Access-Control-Allow-Private-Network: true`, because a
+  request to a loopback address is a "private network request" and Chrome can
+  refuse the preflight without it. Extension origins appear exempt from that
+  check today, but the classification is undocumented and can change.
+
+  If a future Chrome blocks the request anyway, the minimal fix is a single
   narrow entry — `"host_permissions": ["http://127.0.0.1:8787/*"]` — and not a
   wildcard. Loopback only, never a site.
 
