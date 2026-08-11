@@ -196,7 +196,8 @@
         "example": "He ate four glizzies."
       },
       {
-        "definition": "A handgun. Regional, mainly US.",
+        "definition": "A handgun.",
+        "region": "US",
         "confidence": "medium",
         "content_flags": [
           "violent"
@@ -891,7 +892,7 @@
     "register": "genalpha",
     "senses": [
       {
-        "definition": "Prolonged sexual self-stimulation. Explicit; included because it is commonly encountered and often misunderstood by adults who hear it.",
+        "definition": "Prolonged sexual self-stimulation.",
         "confidence": "medium",
         "content_flags": [
           "sexual"

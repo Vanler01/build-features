@@ -171,6 +171,34 @@ describe('the shipped seed', () => {
     expect(offenders).toEqual([]);
   });
 
+  it('states where a sense holds in the region field, not in its prose', () => {
+    // §13's whole argument: a region buried in a definition is beyond
+    // disambiguation's reach and cannot be filtered or displayed. `glizzy`
+    // shipped as "A handgun. Regional, mainly US." and was the case that
+    // showed the column was being written around rather than used.
+    const inProse = terms.flatMap((t) =>
+      t.senses
+        .filter((s) => /\b(regional|mainly (us|uk)|in the (us|uk)\b)/i.test(s.definition))
+        .map((s) => `${t.term}: ${s.definition}`),
+    );
+    expect(inProse).toEqual([]);
+  });
+
+  it('defines the term without arguing for its own inclusion', () => {
+    // The definition is what the reader is shown. Why an entry earns its place
+    // is an editorial note, and `ai/define.ts` tells Claude the same thing:
+    // no caveats, no warnings, no commentary. `gooning` shipped explaining
+    // itself to the reader mid-definition.
+    const editorial = terms.flatMap((t) =>
+      t.senses
+        .filter((s) => /\b(included because|note that|be aware|this entry|we include)\b/i.test(
+          s.definition,
+        ))
+        .map((s) => `${t.term}: ${s.definition}`),
+    );
+    expect(editorial).toEqual([]);
+  });
+
   it('every sense has a definition and a confidence', () => {
     for (const t of terms) {
       for (const s of t.senses) {
