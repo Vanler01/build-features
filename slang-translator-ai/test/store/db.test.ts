@@ -5,7 +5,12 @@
  * JSON-encoding of content_flags, the boolean-to-0/1 conversion.
  */
 
-import { describe, expect, it } from 'vitest';
+import Database from 'better-sqlite3';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { afterEach, describe, expect, it } from 'vitest';
 import { openStore } from '../../src/store/db.js';
 import { findTerm, recordLookup } from '../../src/store/lookup.js';
 import { insertTerm, reportTerm, writeClaudeTerm } from '../../src/store/write.js';
@@ -14,9 +19,100 @@ function freshStore(): ReturnType<typeof openStore> {
   return openStore(':memory:');
 }
 
+const MIGRATIONS_DIR = fileURLToPath(new URL('../../src/store/migrations/', import.meta.url));
+
+const tempDirs: string[] = [];
+afterEach(() => {
+  for (const dir of tempDirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+});
+
+/**
+ * Build a database at schema 001 only, the way a store created before Phase 2
+ * existed actually looks on disk.
+ */
+function storeAtSchema001(): string {
+  const dir = mkdtempSync(join(tmpdir(), 'slang-migrate-'));
+  tempDirs.push(dir);
+  const path = join(dir, 'store.sqlite3');
+
+  const db = new Database(path);
+  db.exec(`CREATE TABLE schema_migrations (id TEXT PRIMARY KEY, applied_at TEXT NOT NULL)`);
+  db.exec(readFileSync(join(MIGRATIONS_DIR, '001_init.sql'), 'utf8'));
+  db.prepare('INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)').run(
+    '001_init.sql',
+    new Date().toISOString(),
+  );
+  db.close();
+  return path;
+}
+
 describe('migrations', () => {
   it('applies cleanly and is idempotent on a second open', () => {
     const db = freshStore();
+    db.close();
+  });
+
+  it('upgrades a 001-era database without losing a single row', () => {
+    // The rebuild in 002 drops and recreates `terms`. With foreign keys on,
+    // that DROP performs an implicit cascading DELETE and would silently take
+    // every sense, alias and queue row with it. This is the test that fails
+    // loudly if the runner ever stops disabling them.
+    const path = storeAtSchema001();
+
+    const before = new Database(path);
+    before.pragma('foreign_keys = ON');
+    const termId = Number(
+      before
+        .prepare(
+          `INSERT INTO terms (term, normalised, register, source, verified, first_seen, last_seen)
+           VALUES ('cap', 'cap', 'both', 'claude', 0, '2026-01-01', '2026-01-01')`,
+        )
+        .run().lastInsertRowid,
+    );
+    before
+      .prepare(
+        `INSERT INTO senses (term_id, definition, example, confidence, content_flags,
+                             first_seen, last_seen)
+         VALUES (?, 'A lie.', NULL, 'high', '[]', '2026-01-01', '2026-01-01')`,
+      )
+      .run(termId);
+    before
+      .prepare('INSERT INTO aliases (term_id, variant, normalised) VALUES (?, ?, ?)')
+      .run(termId, 'no cap', 'no cap');
+    before
+      .prepare("INSERT INTO review_queue (term_id, reason, queued_at) VALUES (?, 'unverified', ?)")
+      .run(termId, '2026-01-01');
+    before.close();
+
+    const db = openStore(path);
+    const count = (table: string): number =>
+      (db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n;
+
+    expect(count('terms')).toBe(1);
+    expect(count('senses')).toBe(1);
+    expect(count('aliases')).toBe(1);
+    expect(count('review_queue')).toBe(1);
+    expect(db.pragma('foreign_key_check')).toEqual([]);
+
+    // The child tables still point at the rebuilt parent, so cascade works.
+    db.prepare('DELETE FROM terms WHERE id = ?').run(termId);
+    expect(count('senses')).toBe(0);
+    expect(count('aliases')).toBe(0);
+    db.close();
+  });
+
+  it('leaves foreign keys enforced after migrating', () => {
+    const db = freshStore();
+    expect(db.pragma('foreign_keys', { simple: true })).toBe(1);
+    expect(() =>
+      db
+        .prepare(
+          `INSERT INTO senses (term_id, definition, confidence, content_flags,
+                               first_seen, last_seen)
+           VALUES (9999, 'orphan', 'high', '[]', 'now', 'now')`,
+        )
+        .run(),
+    ).toThrow();
     db.close();
   });
 });

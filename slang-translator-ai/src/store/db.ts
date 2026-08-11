@@ -22,12 +22,25 @@ interface MigrationRow {
 
 export function openStore(path: string): Store {
   const db = new Database(path);
-  // Off by default in SQLite; without it ON DELETE CASCADE is silently a no-op.
-  db.pragma('foreign_keys = ON');
   migrate(db);
+  // Off by default in SQLite; without it ON DELETE CASCADE is silently a no-op.
+  // Set *after* migrating — see migrate() for why they must be off during.
+  db.pragma('foreign_keys = ON');
   return db;
 }
 
+/**
+ * Apply pending migrations in filename order, each in its own transaction.
+ *
+ * Foreign keys are off for the duration, because a migration that alters a
+ * CHECK constraint has to rebuild the table (SQLite cannot alter one in
+ * place), and `DROP TABLE terms` with foreign keys on performs an implicit
+ * DELETE that cascades into senses, aliases and review_queue. The pragma
+ * cannot be changed inside a transaction, so it is set around the whole loop
+ * rather than per migration. `foreign_key_check` afterwards is what catches a
+ * rebuild that left a dangling reference — the enforcement we gave up during
+ * the rebuild, applied once at the end instead.
+ */
 function migrate(db: Store): void {
   db.exec(
     `CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -41,17 +54,36 @@ function migrate(db: Store): void {
 
   const files = readdirSync(MIGRATIONS_DIR)
     .filter((f) => f.endsWith('.sql'))
-    .sort();
+    .sort()
+    .filter((f) => !applied.has(f));
+  if (files.length === 0) return;
 
-  for (const file of files) {
-    if (applied.has(file)) continue;
-    const sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf8');
-    db.transaction(() => {
-      db.exec(sql);
-      db.prepare('INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)').run(
-        file,
-        new Date().toISOString(),
+  db.pragma('foreign_keys = OFF');
+  // Renaming a table while another table's REFERENCES clause points at a table
+  // the same migration just dropped makes the modern ALTER TABLE reparse the
+  // whole schema and fail. Legacy mode skips that reparse, which is what a
+  // rebuild needs.
+  db.pragma('legacy_alter_table = ON');
+  try {
+    for (const file of files) {
+      const sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf8');
+      db.transaction(() => {
+        db.exec(sql);
+        db.prepare('INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)').run(
+          file,
+          new Date().toISOString(),
+        );
+      })();
+    }
+
+    const violations = db.pragma('foreign_key_check') as unknown[];
+    if (violations.length > 0) {
+      throw new Error(
+        `migration left ${violations.length} dangling foreign key reference(s); ` +
+          'the database was not left in a usable state',
       );
-    })();
+    }
+  } finally {
+    db.pragma('legacy_alter_table = OFF');
   }
 }

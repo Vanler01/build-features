@@ -5,7 +5,24 @@
 
 import { describe, expect, it } from 'vitest';
 import { formatMultiTermReply, formatTermReply, NO_SLANG_REPLY } from '../../src/bot/reply.js';
-import type { StoredTerm } from '../../src/store/lookup.js';
+import type { StoredSense, StoredTerm } from '../../src/store/lookup.js';
+
+/**
+ * Build a stored sense. `effectiveConfidence` defaults to the stored value —
+ * i.e. a fresh entry that age has not touched — so a test that cares about
+ * decay sets it explicitly and every other test reads as it did before.
+ */
+function sense(
+  partial: Omit<StoredSense, 'id' | 'lastSeen' | 'effectiveConfidence'> &
+    Partial<Pick<StoredSense, 'effectiveConfidence'>>,
+): StoredSense {
+  return {
+    id: 1,
+    lastSeen: '2026-08-01T00:00:00.000Z',
+    effectiveConfidence: partial.effectiveConfidence ?? partial.confidence,
+    ...partial,
+  };
+}
 
 function term(overrides: Partial<StoredTerm> = {}): StoredTerm {
   return {
@@ -16,12 +33,12 @@ function term(overrides: Partial<StoredTerm> = {}): StoredTerm {
     source: 'manual_seed',
     verified: true,
     senses: [
-      {
+      sense({
         definition: 'Charisma, especially flirting skill.',
         example: "he's got mad rizz.",
         confidence: 'high',
         contentFlags: [],
-      },
+      }),
     ],
     ...overrides,
   };
@@ -37,14 +54,14 @@ describe('formatTermReply — single sense', () => {
 
   it('omits the example clause when there is none', () => {
     const reply = formatTermReply(
-      term({ senses: [{ definition: 'x', confidence: 'high', contentFlags: [] }] }),
+      term({ senses: [sense({ definition: 'x', confidence: 'high', contentFlags: [] })] }),
     );
     expect(reply).not.toContain('""');
   });
 
   it('flags a low-confidence sense rather than presenting it as certain', () => {
     const reply = formatTermReply(
-      term({ senses: [{ definition: 'x', confidence: 'low', contentFlags: [] }] }),
+      term({ senses: [sense({ definition: 'x', confidence: 'low', contentFlags: [] })] }),
     );
     expect(reply.toLowerCase()).toContain('not fully sure');
   });
@@ -54,9 +71,9 @@ describe('formatTermReply — multiple senses', () => {
   const cap = term({
     term: 'cap',
     senses: [
-      { definition: 'A lie, or exaggeration.', confidence: 'high', contentFlags: [] },
-      { definition: 'A hat.', confidence: 'medium', contentFlags: [] },
-      { definition: 'An upper limit.', confidence: 'medium', contentFlags: [] },
+      sense({ definition: 'A lie, or exaggeration.', confidence: 'high', contentFlags: [] }),
+      sense({ definition: 'A hat.', confidence: 'medium', contentFlags: [] }),
+      sense({ definition: 'An upper limit.', confidence: 'medium', contentFlags: [] }),
     ],
   });
 
@@ -85,7 +102,7 @@ describe('formatTermReply — content flags: flag, and show', () => {
       term({
         term: 'gooning',
         senses: [
-          { definition: 'A sexual practice.', confidence: 'high', contentFlags: ['sexual'] },
+          sense({ definition: 'A sexual practice.', confidence: 'high', contentFlags: ['sexual'] }),
         ],
       }),
     );
@@ -98,11 +115,11 @@ describe('formatTermReply — content flags: flag, and show', () => {
       term({
         term: 'slur-example',
         senses: [
-          {
+          sense({
             definition: 'A derogatory term for a group.',
             confidence: 'high',
             contentFlags: ['slur'],
-          },
+          }),
         ],
       }),
     );

@@ -6,7 +6,7 @@ Decodes Gen Z and Gen Alpha slang the moment you hit it — a term, an acronym, 
 phrase — and gives back a short plain definition plus an example. Telegram bot
 first, browser extension second, one vocabulary store behind both.
 
-> Status: spec. No code yet.
+> Status: Phases 0–2 built (seed, bot, review queue). Phase 3 (extension) next.
 
 ---
 
@@ -232,17 +232,37 @@ is never `verified` without a human.
 
 ## 11. Roadmap
 
-**Phase 0 — Prep**
+**Phase 0 — Prep** ✅
 Telegram bot via @BotFather. Hand-write the ~50-term seed list with senses,
-examples and flags.
+examples and flags. *Shipped as 56 terms / 67 senses — written by Claude rather
+than by hand, so they carry `source: claude`, `verified: false` and all went
+into the review queue. Calling them `manual_seed` would have been the
+convenient lie.*
 
-**Phase 1 — Bot**
+**Phase 1 — Bot** ✅
 Store, lookup, sense disambiguation, Claude fallback on a miss, reply
 formatting, the "no slang here" path, `/report`.
 
-**Phase 2 — Review**
+**Phase 2 — Review** ✅
 Review queue, verification flow, confidence decay, promotion from unverified.
 *(This is what remains of the old "data pipeline" phase — much smaller.)*
+
+Two things worth recording, because both are places the design was wrong and
+had to change rather than be worked around:
+
+- **§10's schema needed amending before promotion was possible at all.**
+  Phase 1 encoded "a Claude entry is never auto-verified" as
+  `CHECK (NOT (source = 'claude' AND verified = 1))`, which forbids *any*
+  verification, including a person's. Since every entry in the store is
+  `source: claude`, nothing could ever have been promoted. Migration 002
+  rebuilds the table with `verified_by` / `verified_at`, and the constraint
+  becomes "not verified with nobody's name on it". `source` still records the
+  real origin after promotion — a verified entry stays `claude`.
+- **Decay measured from `last_seen` cannot see a popular wrong entry.** Every
+  lookup refreshes `last_seen`, so a frequently-asked term never looks stale
+  however unsure its definition is. That is why §4's second signal — looked up
+  often, answered with low confidence — is implemented as its own sweep rather
+  than being treated as a restatement of the first.
 
 **Phase 3 — Extension**
 Manifest V3, `contextMenus`, `activeTab`. Same store as the bot.

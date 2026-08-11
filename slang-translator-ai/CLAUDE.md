@@ -37,11 +37,20 @@ invoking a lookup on their own selection.
 2. **A Claude-sourced entry is never auto-promoted to verified.** It may be
    *served* while unverified — that is the point of the cache — but `verified`
    is set by a person. Auto-promotion launders a guess into a fact.
+   Mechanically: `verified = 1` requires a non-null `verified_by`, and the only
+   code that writes it is `src/review/` behind the CLI. The bot path does not
+   import that module and must not start. Note the rule constrains *automation*,
+   not people — a promoted entry keeps `source: 'claude'`, because rewriting it
+   to `manual_seed` on promotion would forge the provenance rule 3 protects.
 3. **`source` names the real origin**: `manual_seed`, `claude`, or
    `user_report`. Never a generic value.
 4. **Confidence decays with `last_seen`.** Slang shifts meaning while keeping
    its spelling; an entry nobody has touched in months is a re-verification
-   candidate, not a fact.
+   candidate, not a fact. Decay is computed at read time and never written
+   back — persisting it would destroy the original assessment a reviewer needs
+   to see. Know its blind spot: a lookup refreshes `last_seen`, so a popular
+   term never looks stale however wrong it is. `sweepLowConfidence` is what
+   covers that, and the two sweeps are not interchangeable.
 
 ### Answering
 5. **Store first, Claude second.** A lookup that calls Claude before checking

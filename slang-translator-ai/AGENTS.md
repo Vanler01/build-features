@@ -8,12 +8,26 @@ Spec: `REQUIREMENTS.md`.
 npm install                 # grammY, @anthropic-ai/sdk, better-sqlite3
 npm run dev                 # bot, long polling
 npm test                    # vitest
-npx eslint .
-npm run seed                # load the hand-written seed vocabulary
-npm run review              # work the review queue
+npm run lint                # eslint + tsc --noEmit
+npm run seed                # load the seed vocabulary (idempotent)
+npm run review              # work the review queue — see below
 ```
-(No code exists yet — these are the intended commands once Phase 1 starts.
-Note there is no `scrape` command, and there should never be one.)
+Note there is no `scrape` command, and there should never be one.
+
+### Review queue (Phase 2)
+```bash
+npm run review                                   # open items, reports first
+npm run review -- show <term>                    # senses, flags, stored vs aged confidence
+npm run review -- verify <term> --by <you>       # the only path to verified
+npm run review -- reject <term>                  # looked, not confirmed; clears the item
+npm run review -- unverify <term>                # send a verified entry back
+npm run review -- sweep                          # queue stale + low-confidence entries
+npm run review -- stats
+```
+The `--` matters: without it npm eats `--by` and the reviewer name is lost.
+`SLANG_REVIEWER=<you>` works instead of the flag. The CLI needs no API keys and
+makes no network calls — re-verification is a person reading an entry, not a
+model grading its own homework.
 
 ## Agents
 

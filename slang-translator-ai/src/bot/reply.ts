@@ -4,23 +4,27 @@
  * Pure string formatting, no I/O, so it's testable without a bot or a store.
  */
 
-import type { StoredTerm } from '../store/lookup.js';
-import type { Sense } from '../store/types.js';
+import type { StoredSense, StoredTerm } from '../store/lookup.js';
 
 /** "Nothing unusual here" is a correct answer (REQUIREMENTS §2), not a fallback apology. */
 export const NO_SLANG_REPLY = 'Nothing unusual here — no slang I recognise.';
 
-function flagPrefix(sense: Sense): string {
+function flagPrefix(sense: StoredSense): string {
   return sense.contentFlags.length === 0 ? '' : `[${sense.contentFlags.join(', ')}] `;
 }
 
-function confidenceSuffix(sense: Sense): string {
+function confidenceSuffix(sense: StoredSense): string {
   // REQUIREMENTS §2: a low-confidence read says so, rather than presenting a
   // guess with the same certainty as a checked definition.
-  return sense.confidence === 'low' ? ' (not fully sure about this one)' : '';
+  //
+  // The *effective* confidence, not the stored one — an entry written down as
+  // "high" a year ago and untouched since is no longer a high-confidence
+  // answer, and the reader is the person who most needs to know that
+  // (CLAUDE.md rule 4).
+  return sense.effectiveConfidence === 'low' ? ' (not fully sure about this one)' : '';
 }
 
-function formatSense(term: string, sense: Sense): string {
+function formatSense(term: string, sense: StoredSense): string {
   const example = sense.example === undefined ? '' : ` "${sense.example}"`;
   return `${flagPrefix(sense)}"${term}" = ${sense.definition}${example}${confidenceSuffix(sense)}`;
 }
