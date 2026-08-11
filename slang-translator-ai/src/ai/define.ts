@@ -9,6 +9,7 @@
 
 import type Anthropic from '@anthropic-ai/sdk';
 import { parseSense } from '../store/seed.js';
+import type { CallLog } from '../store/spend.js';
 import type { Register, Sense } from '../store/types.js';
 import { DEFINE_MODEL } from './client.js';
 import { AiError } from './errors.js';
@@ -102,6 +103,7 @@ export async function defineTerm(
   client: Anthropic,
   term: string,
   context?: string,
+  log?: CallLog,
 ): Promise<DefinedTerm> {
   const prompt =
     context === undefined
@@ -119,6 +121,8 @@ export async function defineTerm(
       messages: [{ role: 'user', content: prompt }],
     },
     TOOL_NAME,
+    'define',
+    log,
   );
 
   const register = input['register'];

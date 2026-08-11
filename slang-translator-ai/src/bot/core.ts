@@ -10,12 +10,21 @@ import { detectSlang } from '../ai/detect.js';
 import type { Store } from '../store/db.js';
 import type { StoredTerm } from '../store/lookup.js';
 import { findTerm, recordLookup } from '../store/lookup.js';
+import { callLog, overDailyLimit } from '../store/spend.js';
 import { reportTerm, writeClaudeTerm } from '../store/write.js';
-import { formatMultiTermReply, formatTermReply, NO_SLANG_REPLY } from './reply.js';
+import { formatMultiTermReply, formatTermReply, LIMIT_REPLY, NO_SLANG_REPLY } from './reply.js';
 
 export interface Deps {
   readonly db: Store;
   readonly client: Anthropic;
+  /**
+   * Claude calls allowed per UTC day, or `undefined` for no ceiling.
+   *
+   * Undefined and zero are different instructions and must stay that way: a
+   * missing config value cannot be allowed to silently mean "never call
+   * Claude", which would look exactly like the store having gone cold.
+   */
+  readonly dailyCallLimit?: number | undefined;
 }
 
 export const HELP_TEXT = `Send me a word, or a whole message, and I'll tell you what any \
@@ -44,9 +53,14 @@ function isSingleWord(text: string): boolean {
   return text.trim().split(/\s+/).filter(Boolean).length === 1;
 }
 
+/** Whether today's Claude budget is spent. Checked before every call, not once. */
+function outOfBudget(deps: Deps): boolean {
+  return overDailyLimit(deps.db, deps.dailyCallLimit);
+}
+
 /** Define an unknown term via Claude, write it as unverified, and read it back. */
 async function defineAndStore(deps: Deps, term: string, context?: string): Promise<StoredTerm> {
-  const defined = await defineTerm(deps.client, term, context);
+  const defined = await defineTerm(deps.client, term, context, callLog(deps.db));
   writeClaudeTerm(deps.db, defined);
   const stored = findTerm(deps.db, defined.term);
   if (stored === undefined) {
@@ -63,6 +77,11 @@ export async function handleMessage(deps: Deps, text: string): Promise<string> {
     return formatTermReply(direct);
   }
 
+  // Everything below this line costs money, and everything above it — the
+  // store — still works. Degrading to "what I already know" is the honest
+  // fallback for a cache; failing or spending past the ceiling is not.
+  if (outOfBudget(deps)) return LIMIT_REPLY;
+
   if (isSingleWord(text)) {
     let stored;
     try {
@@ -77,7 +96,7 @@ export async function handleMessage(deps: Deps, text: string): Promise<string> {
     return formatTermReply(stored);
   }
 
-  const candidates = await detectSlang(deps.client, text);
+  const candidates = await detectSlang(deps.client, text, callLog(deps.db));
   if (candidates.length === 0) return NO_SLANG_REPLY;
 
   const replies: string[] = [];
@@ -86,14 +105,27 @@ export async function handleMessage(deps: Deps, text: string): Promise<string> {
 
     if (stored !== undefined) {
       recordLookup(deps.db, stored.id, true);
-      if (stored.senses.length > 1) {
-        const leadIndex = await disambiguateSense(deps.client, stored.term, stored.senses, text);
+      // A stored term still answers past the ceiling; only the disambiguation
+      // call is dropped, which costs the reader sense ordering rather than the
+      // definition itself.
+      if (stored.senses.length > 1 && !outOfBudget(deps)) {
+        const leadIndex = await disambiguateSense(
+          deps.client,
+          stored.term,
+          stored.senses,
+          text,
+          callLog(deps.db),
+        );
         replies.push(formatTermReply(stored, leadIndex));
       } else {
         replies.push(formatTermReply(stored));
       }
       continue;
     }
+
+    // One message with a dozen unknown terms would otherwise sail past the
+    // ceiling in a single pass, so it is rechecked per candidate.
+    if (outOfBudget(deps)) continue;
 
     try {
       const defined = await defineAndStore(deps, candidate, text);

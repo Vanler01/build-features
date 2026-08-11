@@ -8,6 +8,7 @@
  */
 
 import type Anthropic from '@anthropic-ai/sdk';
+import type { CallLog } from '../store/spend.js';
 import type { Sense } from '../store/types.js';
 import { DISAMBIGUATE_MODEL } from './client.js';
 import { AiError } from './errors.js';
@@ -50,6 +51,7 @@ export async function disambiguateSense(
   term: string,
   senses: readonly Sense[],
   context: string,
+  log?: CallLog,
 ): Promise<number> {
   if (senses.length < 2) {
     throw new AiError('disambiguateSense: needs at least two senses to disambiguate between');
@@ -66,6 +68,8 @@ export async function disambiguateSense(
       messages: [{ role: 'user', content: fence(context) }],
     },
     TOOL_NAME,
+    'disambiguate',
+    log,
   );
 
   const index = input['sense_index'];

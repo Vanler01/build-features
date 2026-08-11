@@ -8,14 +8,27 @@
  */
 
 import type Anthropic from '@anthropic-ai/sdk';
+import type { CallLog } from '../store/spend.js';
 import { AiError } from './errors.js';
 
+/**
+ * `purpose` and `log` exist for cost accounting, and this is the only place
+ * they need to be wired: every Claude call in the project goes through here,
+ * so counting here cannot drift the way three separate call sites would.
+ *
+ * The call is recorded *before* the response is inspected, because a call that
+ * came back malformed still cost money — counting only successes would
+ * undercount exactly when something is going wrong in a loop.
+ */
 export async function callTool(
   client: Anthropic,
   params: Anthropic.MessageCreateParamsNonStreaming,
   toolName: string,
+  purpose: string,
+  log?: CallLog,
 ): Promise<Record<string, unknown>> {
   const response = await client.messages.create(params);
+  log?.record(params.model, purpose);
 
   if (response.stop_reason !== 'tool_use') {
     throw new AiError(`${toolName}: unexpected stop_reason ${response.stop_reason ?? 'null'}`);

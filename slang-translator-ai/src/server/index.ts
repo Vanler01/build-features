@@ -43,7 +43,7 @@ function main(): void {
   const config = loadConfig();
   const db = openStore(config.dbPath);
   const client = createClient(config.anthropicApiKey);
-  const deps = { db, client };
+  const deps = { db, client, dailyCallLimit: config.dailyCallLimit };
 
   const port = Number(process.env['SLANG_API_PORT'] ?? DEFAULT_PORT);
 

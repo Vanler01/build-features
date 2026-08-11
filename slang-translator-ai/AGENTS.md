@@ -32,7 +32,7 @@ npm run review -- unverify <term>                # send a verified entry back
 npm run review -- alias <term> = <variant>       # record an irregular spelling
 npm run review -- top                            # most looked-up terms
 npm run review -- sweep                          # queue stale + low-confidence entries
-npm run review -- stats
+npm run review -- stats                          # queue counts, cache hit rate, today's spend
 ```
 
 Correcting an entry (Phase 5) — sense numbers are the ones `show` prints:
@@ -62,6 +62,15 @@ The `--` matters: without it npm eats `--by` and the reviewer name is lost.
 `SLANG_REVIEWER=<you>` works instead of the flag. The CLI needs no API keys and
 makes no network calls — re-verification is a person reading an entry, not a
 model grading its own homework.
+
+### Cost (Phase 5)
+Every Claude call goes through `callTool` in `src/ai/run.ts` and is counted
+there, in one place, into `claude_calls` — model, purpose and time, **never the
+term or the prompt**. `SLANG_DAILY_CALL_LIMIT` caps calls per UTC day (default
+200; `none` disables it, and has to be typed, so a missing value can never
+quietly mean unlimited). Past the ceiling the store keeps answering and only
+new lookups stop — for a cache, degrading to cache is the honest fallback.
+`npm run review -- stats` shows the hit rate and today's calls by purpose.
 
 ## Agents
 

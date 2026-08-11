@@ -10,6 +10,7 @@
  */
 
 import { openStore, type Store } from '../store/db.js';
+import { callsByPurpose, hitRate } from '../store/spend.js';
 import { addSense, addTerm, editSense, removeSense, type SenseChange } from './edit.js';
 import { formatEntry } from './format.js';
 import {
@@ -170,6 +171,30 @@ function cmdStats(db: Store): void {
   console.log(`decayed:    ${stats.decayed}`);
   console.log(`unverified: ${stats.unverified}`);
   console.log(`\n${unverifiedCount(db)} term(s) unverified overall.`);
+
+  // Whether store-first is actually working. `found_locally` has been written
+  // on every lookup since the first migration and read by nothing until now.
+  const rate = hitRate(db);
+  if (rate.total === 0) {
+    console.log('\nNo lookups yet, so there is no hit rate to report.');
+  } else {
+    const percent = Math.round((rate.hits / rate.total) * 100);
+    console.log(
+      `\ncache: ${rate.hits}/${rate.total} lookups answered from the store (${percent}%), ` +
+        `${rate.misses} needed Claude.`,
+    );
+  }
+
+  const today = callsByPurpose(db);
+  const total = Object.values(today).reduce((sum, n) => sum + n, 0);
+  if (total === 0) {
+    console.log('No Claude calls today.');
+  } else {
+    const breakdown = Object.entries(today)
+      .map(([purpose, n]) => `${purpose} ${n}`)
+      .join(', ');
+    console.log(`Claude calls today: ${total} (${breakdown}).`);
+  }
 }
 
 function cmdSweep(db: Store): void {

@@ -9,6 +9,19 @@ import type { StoredSense, StoredTerm } from '../store/lookup.js';
 /** "Nothing unusual here" is a correct answer (REQUIREMENTS §2), not a fallback apology. */
 export const NO_SLANG_REPLY = 'Nothing unusual here — no slang I recognise.';
 
+/**
+ * Said when the day's Claude budget is spent.
+ *
+ * Names the limit rather than pretending the term is unknown: "nothing unusual
+ * here" would be a lie about the word, and a reader who cannot tell a real
+ * "no slang" from a spending cap has been told something false about English
+ * rather than about this tool. It also says what still works, because the
+ * store does.
+ */
+export const LIMIT_REPLY =
+  "I've hit today's lookup limit, so I can't look up anything new until tomorrow. " +
+  'Anything already in the store still answers normally.';
+
 function flagPrefix(sense: StoredSense): string {
   return sense.contentFlags.length === 0 ? '' : `[${sense.contentFlags.join(', ')}] `;
 }

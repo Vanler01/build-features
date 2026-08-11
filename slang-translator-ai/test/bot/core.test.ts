@@ -8,9 +8,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type Anthropic from '@anthropic-ai/sdk';
 import { handleMessage, handleReport, type Deps } from '../../src/bot/core.js';
-import { NO_SLANG_REPLY } from '../../src/bot/reply.js';
+import { LIMIT_REPLY, NO_SLANG_REPLY } from '../../src/bot/reply.js';
 import { openStore, type Store } from '../../src/store/db.js';
 import { findTerm } from '../../src/store/lookup.js';
+import { callsByPurpose, callsToday } from '../../src/store/spend.js';
 import { insertTerm } from '../../src/store/write.js';
 
 function seededStore(): Store {
@@ -229,6 +230,65 @@ describe('content flags survive the full flow — flag, and show', () => {
     const reply = await handleMessage({ db, client }, 'she looked thicc in that dress');
     expect(reply).toContain('[vulgar]');
     expect(reply).toContain('Curvy in an attractive way.');
+  });
+});
+
+describe('the daily Claude ceiling', () => {
+  it('counts every call the flow makes, through one chokepoint', async () => {
+    const client = routedClient({
+      detected_slang: { terms: ['yeet'] },
+      define_term: {
+        register: 'genz',
+        senses: [{ definition: 'To throw.', confidence: 'high', content_flags: [] }],
+      },
+    });
+    await handleMessage({ db, client }, 'he really yeeted that across the room');
+    expect(callsByPurpose(db)).toEqual({ detect: 1, define: 1 });
+  });
+
+  it('serves the store past the ceiling instead of failing or spending', async () => {
+    const client = routedClient({});
+    const deps: Deps = { db, client, dailyCallLimit: 0 };
+
+    // Already in the store, so this never needed Claude in the first place.
+    expect(await handleMessage(deps, 'cap')).toContain('A lie, or exaggeration.');
+    // Not in the store, so this is the one that would have cost money.
+    expect(await handleMessage(deps, 'skibidi')).toBe(LIMIT_REPLY);
+    expect(client.messages.create).not.toHaveBeenCalled();
+  });
+
+  it('says it hit a limit rather than claiming the word is not slang', async () => {
+    // "Nothing unusual here" would be a lie about the language rather than a
+    // fact about this tool, and the reader cannot tell the two apart.
+    const client = routedClient({});
+    const reply = await handleMessage({ db, client, dailyCallLimit: 0 }, 'skibidi');
+    expect(reply).not.toBe(NO_SLANG_REPLY);
+    expect(reply).toContain("today's lookup limit");
+  });
+
+  it('stops mid-message rather than defining a dozen unknown terms past the cap', async () => {
+    const client = routedClient({
+      detected_slang: { terms: ['aaa', 'bbb', 'ccc'] },
+      define_term: {
+        register: 'genz',
+        senses: [{ definition: 'A thing.', confidence: 'low', content_flags: [] }],
+      },
+    });
+    // One detect plus one define fills a ceiling of 2; the other two
+    // candidates must not be defined anyway.
+    await handleMessage({ db, client, dailyCallLimit: 2 }, 'aaa bbb ccc all at once please');
+    expect(callsToday(db)).toBe(2);
+  });
+
+  it('leaves an unconfigured limit uncapped rather than silently zero', async () => {
+    const client = routedClient({
+      define_term: {
+        register: 'genz',
+        senses: [{ definition: 'To throw.', confidence: 'high', content_flags: [] }],
+      },
+    });
+    const reply = await handleMessage({ db, client }, 'yeet');
+    expect(reply).toContain('To throw.');
   });
 });
 

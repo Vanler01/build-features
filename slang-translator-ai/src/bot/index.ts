@@ -12,7 +12,7 @@ function main(): void {
   const client = createClient(config.anthropicApiKey);
   const bot = new Bot(config.telegramBotToken);
 
-  registerHandlers(bot, { db, client });
+  registerHandlers(bot, { db, client, dailyCallLimit: config.dailyCallLimit });
 
   process.once('SIGINT', () => void bot.stop());
   process.once('SIGTERM', () => void bot.stop());
