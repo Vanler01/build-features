@@ -6,8 +6,10 @@ Decodes Gen Z and Gen Alpha slang the moment you hit it — a term, an acronym, 
 phrase — and gives back a short plain definition plus an example. Telegram bot
 first, browser extension second, one vocabulary store behind both.
 
-> Status: Phases 0–4 built. Every roadmap item is implemented; what remains is
+> Status: Phases 0–5 built. Every roadmap item is implemented; what remains is
 > use — working the review queue down, and deciding the sharing question below.
+> Nothing has been looked up yet, so the demand-ordered queue and the hit rate
+> are both waiting on the bot actually being run.
 
 ---
 
@@ -303,6 +305,35 @@ Aliases and variants, regional senses, most-looked-up prioritisation.
   a human has checked. `npm run review -- top` shows demand directly, marking
   what is still unverified — the top unverified row there is the highest-value
   review in the store.
+
+**Phase 5 — Correction, control, and context** ✅
+Reviewer editing, a routing fix, an inverted alias, and cost.
+
+- **A reviewer can correct an entry, not only bless or bounce it.** `verify`
+  and `reject` were the whole vocabulary, so a definition Claude got slightly
+  wrong could only be promoted with the error in it or left unverified for
+  ever. `src/review/edit.ts` adds edit, example, flags, region, confidence,
+  sense add/rm, and add. Editing never promotes, never rewrites `source` — a
+  corrected Claude definition is still a Claude definition — and editing an
+  entry that is already verified re-stamps the reviewer's name, because the
+  previous one never saw the new wording. Changes validate as a whole sense
+  through `parseSense`, which is what catches flagging a sense as a slur while
+  it still carries an example (§8's one hard rule, arriving by the back door).
+  `add` is the only path that produces `manual_seed`.
+- **A short sentence is a sentence.** The bare-term branch treated three words
+  or fewer as a named term, and `defineTerm` returns the string it was handed
+  verbatim, so "he's got rizz" was written into `terms` as a row with that
+  name. Multi-word terms were never affected — store-first answers them — so
+  only the miss path changed, and it now asks detection what the slang is.
+- **An alias must mean the same thing as its term.** "no cap" shipped as an
+  alias of "cap" and answered with the opposite meaning under a headword the
+  user never typed. It is its own term now. Nothing mechanical can catch this
+  class, so it is written down where the next alias gets added.
+- **Cost is counted and capped.** `lookups.found_locally` had been written on
+  every lookup since Phase 0 and read by nothing; `review -- stats` now shows
+  the hit rate. `claude_calls` records model, purpose and time — never the term
+  — and `SLANG_DAILY_CALL_LIMIT` (default 200 per UTC day) stops a loop
+  spending unwatched. Past the ceiling the store keeps answering.
 
 ---
 
