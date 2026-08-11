@@ -3,12 +3,13 @@
  *
  * Most of these assert the *rules*, not the data — the validator is what stops
  * a guess entering the store wearing a verified badge, and it is worth more
- * than the 56 entries it currently guards.
+ * than the entries it currently guards.
  */
 
 import { describe, expect, it } from 'vitest';
 import { SeedError, loadSeed, parseTerm, report } from '../src/store/seed.js';
 import { normalise } from '../src/store/types.js';
+import { variantsOf } from '../src/store/variants.js';
 
 const SEED_PATH = new URL('../data/seed.json', import.meta.url).pathname;
 
@@ -186,6 +187,39 @@ describe('the shipped seed', () => {
   });
 });
 
+describe('an alias means the same thing, not merely something related', () => {
+  const terms = loadSeed(SEED_PATH);
+
+  it('does not point a negation at the word it negates', () => {
+    // "no cap" shipped as an alias of "cap", so someone asking what "no cap"
+    // meant was told `"cap" = A lie, or exaggeration` — the inverse, under a
+    // headword they never typed. Nothing mechanical can catch this; the seed
+    // is where it has to be caught.
+    const cap = terms.find((t) => t.term === 'cap');
+    if (cap === undefined) throw new Error('cap missing from seed');
+    const aliases = cap.aliases.map(normalise);
+    expect(aliases).not.toContain('no cap');
+    expect(aliases).not.toContain('nocap');
+  });
+
+  it('carries "no cap" as its own term, meaning affirmation rather than a lie', () => {
+    const noCap = terms.find((t) => t.term === 'no cap');
+    if (noCap === undefined) throw new Error('"no cap" missing from seed');
+    expect(noCap.senses.every((s) => !/\blie\b/i.test(s.definition))).toBe(true);
+  });
+
+  it('curates no alias that variantsOf already generates', () => {
+    // Redundant curation is harmless in itself but misleading: it implies the
+    // mechanical path does not cover the shape, and the next person adds more.
+    const redundant = terms.flatMap((t) =>
+      t.aliases
+        .filter((alias) => variantsOf(alias).includes(normalise(t.term)))
+        .map((alias) => `${t.term}: ${alias}`),
+    );
+    expect(redundant).toEqual([]);
+  });
+});
+
 describe('normalisation', () => {
   it('folds case and whitespace', () => {
     expect(normalise('  No   CAP ')).toBe('no cap');
@@ -198,9 +232,9 @@ describe('normalisation', () => {
 
   it('is stable across the seed aliases', () => {
     const terms = loadSeed(SEED_PATH);
-    const cap = terms.find((t) => t.term === 'cap');
-    if (cap === undefined) throw new Error('cap missing from seed');
-    expect(cap.aliases.map(normalise)).toContain('no cap');
+    const ate = terms.find((t) => t.term === 'ate');
+    if (ate === undefined) throw new Error('ate missing from seed');
+    expect(ate.aliases.map(normalise)).toContain('left no crumbs');
   });
 });
 

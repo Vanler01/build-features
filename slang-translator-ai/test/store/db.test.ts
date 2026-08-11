@@ -223,6 +223,31 @@ describe('lookup', () => {
     expect(found?.id).toBe(id);
   });
 
+  it('resolves a run-together spelling to its own term, not to the word it negates', () => {
+    // Regression: "no cap" shipped as an alias of "cap", so asking about "no
+    // cap" was answered `"cap" = A lie, or exaggeration` — the opposite
+    // meaning, under a headword the user never typed. Both terms exist here
+    // because the collapsed-key path has to pick between them.
+    const db = freshStore();
+    const cap = writeClaudeTerm(db, {
+      term: 'cap',
+      register: 'both',
+      senses: [{ definition: 'A lie.', confidence: 'high', contentFlags: [] }],
+    });
+    const noCap = writeClaudeTerm(db, {
+      term: 'no cap',
+      register: 'both',
+      senses: [{ definition: 'Honestly; no exaggeration.', confidence: 'high', contentFlags: [] }],
+    });
+
+    expect(findTerm(db, 'no cap')?.id).toBe(noCap);
+    // No curated alias for this: `byCollapsedKey` compares both sides with
+    // separators removed, which is what makes "nocap" reach "no cap".
+    expect(findTerm(db, 'nocap')?.id).toBe(noCap);
+    expect(findTerm(db, 'no-cap')?.id).toBe(noCap);
+    expect(findTerm(db, 'cap')?.id).toBe(cap);
+  });
+
   it('returns undefined on a genuine miss, not a throw', () => {
     const db = freshStore();
     expect(findTerm(db, 'not a real term')).toBeUndefined();
@@ -267,7 +292,7 @@ describe('insertTerm (seed loader path)', () => {
     const db = freshStore();
     const id = insertTerm(db, {
       term: 'cap',
-      aliases: ['no cap', 'nocap'],
+      aliases: ['🧢'],
       register: 'both',
       source: 'manual_seed',
       verified: true,
@@ -282,10 +307,10 @@ describe('insertTerm (seed loader path)', () => {
     expect(found?.source).toBe('manual_seed');
     expect(found?.verified).toBe(true);
     expect(found?.senses).toHaveLength(2);
-    expect(found?.aliases.slice().sort()).toEqual(['no cap', 'nocap']);
+    expect(found?.aliases).toEqual(['🧢']);
 
     // The alias resolves too — not just the primary term.
-    expect(findTerm(db, 'nocap')?.id).toBe(id);
+    expect(findTerm(db, '🧢')?.id).toBe(id);
   });
 
   it('queues an unverified term for review, same as a live Claude miss would', () => {
@@ -322,7 +347,7 @@ describe('insertTerm (seed loader path)', () => {
     const db = freshStore();
     const id = insertTerm(db, {
       term: 'cap',
-      aliases: ['no cap', 'nocap', '🧢'],
+      aliases: ['🧢'],
       register: 'both',
       source: 'manual_seed',
       verified: true,

@@ -18,6 +18,15 @@
  *    than a miss. Only endings that are near-unambiguous in English are
  *    stripped, and each candidate must still hit a real row to matter.
  *
+ * The rule curated aliases have to obey, learned the hard way: **an alias must
+ * mean the same thing, not merely be related.** "no cap" shipped as an alias of
+ * "cap" and inverted the answer — someone asking what "no cap" meant was told
+ * `"cap" = A lie, or exaggeration`, under a headword they had not typed. An
+ * alias is a second spelling of one meaning; a negation, an antonym or a
+ * derived phrase is a different meaning and gets its own term. `addAlias`
+ * cannot catch this — nothing mechanical can tell "nocap" from "no cap" — so it
+ * is a rule for whoever runs `review -- alias`.
+ *
  * Deliberately *not* here: recording which variant a user typed. That is the
  * user's own text, and `lookups` holds a term id and a timestamp, nothing else
  * (rule 19). Turning a frequently-hit variant into a permanent alias is a

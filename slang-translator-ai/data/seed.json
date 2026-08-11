@@ -2,8 +2,6 @@
   {
     "term": "cap",
     "aliases": [
-      "no cap",
-      "nocap",
       "🧢"
     ],
     "register": "both",
@@ -25,6 +23,20 @@
         "confidence": "medium",
         "content_flags": [],
         "example": "There's a cap on how many you can buy."
+      }
+    ],
+    "source": "claude",
+    "verified": false
+  },
+  {
+    "term": "no cap",
+    "register": "both",
+    "senses": [
+      {
+        "definition": "Honestly, with no exaggeration. Added to stress that what is being said is true.",
+        "confidence": "high",
+        "content_flags": [],
+        "example": "That was the best meal I've had all year, no cap."
       }
     ],
     "source": "claude",
@@ -539,10 +551,6 @@
   },
   {
     "term": "mog",
-    "aliases": [
-      "mogging",
-      "mogged"
-    ],
     "register": "both",
     "senses": [
       {
@@ -588,7 +596,6 @@
   {
     "term": "yap",
     "aliases": [
-      "yapping",
       "yapper"
     ],
     "register": "both",
