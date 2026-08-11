@@ -15,17 +15,32 @@ function flagPrefix(sense: StoredSense): string {
 
 function confidenceSuffix(sense: StoredSense): string {
   // REQUIREMENTS §2: a low-confidence read says so, rather than presenting a
-  // guess with the same certainty as a checked definition.
-  //
-  // The *effective* confidence, not the stored one — an entry written down as
-  // "high" a year ago and untouched since is no longer a high-confidence
-  // answer, and the reader is the person who most needs to know that
-  // (CLAUDE.md rule 4).
-  return sense.effectiveConfidence === 'low' ? ' (not fully sure about this one)' : '';
+  // guess with the same certainty as a checked definition. The *effective*
+  // confidence, not the stored one — an entry written down as "high" a year
+  // ago and untouched since is no longer a high-confidence answer, and the
+  // reader is the person who most needs to know that (CLAUDE.md rule 4).
+  if (sense.effectiveConfidence !== 'low') return '';
+
+  // Two different things reach "low", and they ask the reader for opposite
+  // responses: an entry nobody was ever sure of means distrust the definition
+  // as written, while an entry that was confident and has since gone stale
+  // means the definition was probably right and the *term* may have moved.
+  // Saying "not fully sure" for both is the ambiguity rule 13 exists to
+  // prevent, and it reads worst for the second-language reader who cannot
+  // infer which one is meant.
+  return sense.confidence === 'low'
+    ? ' (not fully sure about this one)'
+    : ' (this definition may be out of date)';
 }
 
 function formatSense(term: string, sense: StoredSense): string {
-  const example = sense.example === undefined ? '' : ` "${sense.example}"`;
+  // Rule 11, the one hard content rule: an example models using the word, and
+  // a slur must never carry one. `parseSense` already refuses to store such an
+  // entry, so this is the second lock rather than the first — but it is the
+  // one on the door the reader is standing at, and a row that arrives by
+  // migration, fixture or a future write path bypasses the validator entirely.
+  const showExample = sense.example !== undefined && !sense.contentFlags.includes('slur');
+  const example = showExample ? ` "${sense.example ?? ''}"` : '';
   return `${flagPrefix(sense)}"${term}" = ${sense.definition}${example}${confidenceSuffix(sense)}`;
 }
 

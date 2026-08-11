@@ -74,14 +74,17 @@ function migrate(db: Store): void {
           new Date().toISOString(),
         );
       })();
-    }
 
-    const violations = db.pragma('foreign_key_check') as unknown[];
-    if (violations.length > 0) {
-      throw new Error(
-        `migration left ${violations.length} dangling foreign key reference(s); ` +
-          'the database was not left in a usable state',
-      );
+      // Per migration, not once at the end: a later migration could otherwise
+      // repair a reference an earlier one broke, and the combined check would
+      // report clean while a real defect sat in the middle of the sequence.
+      const violations = db.pragma('foreign_key_check') as unknown[];
+      if (violations.length > 0) {
+        throw new Error(
+          `migration ${file} left ${violations.length} dangling foreign key reference(s); ` +
+            'the database was not left in a usable state',
+        );
+      }
     }
   } finally {
     db.pragma('legacy_alter_table = OFF');

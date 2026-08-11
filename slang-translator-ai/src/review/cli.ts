@@ -10,7 +10,7 @@
  */
 
 import { openStore, type Store } from '../store/db.js';
-import type { StoredTerm } from '../store/lookup.js';
+import { formatEntry } from './format.js';
 import {
   forReview,
   pending,
@@ -50,35 +50,6 @@ function extractReviewer(args: readonly string[]): { reviewer: string; rest: str
     if (arg !== undefined) rest.push(arg);
   }
   return { reviewer, rest };
-}
-
-function formatEntry(entry: StoredTerm): string {
-  const status = entry.verified
-    ? `verified by ${entry.verifiedBy ?? 'unknown'}${
-        entry.verifiedAt === undefined ? '' : ` on ${entry.verifiedAt.slice(0, 10)}`
-      }`
-    : 'UNVERIFIED';
-
-  const lines = [
-    `${entry.term}  [${status}]`,
-    `  source: ${entry.source}   register: ${entry.register}`,
-    entry.aliases.length === 0 ? '  aliases: —' : `  aliases: ${entry.aliases.join(', ')}`,
-  ];
-
-  entry.senses.forEach((sense, i) => {
-    const flags = sense.contentFlags.length === 0 ? '' : ` [${sense.contentFlags.join(', ')}]`;
-    // Showing both confidences is the point of the review view: the reviewer
-    // needs to see what was originally claimed, not only what age has done to it.
-    const decayed =
-      sense.effectiveConfidence === sense.confidence
-        ? sense.confidence
-        : `${sense.confidence} → ${sense.effectiveConfidence} (aged)`;
-    lines.push(`  ${i + 1}.${flags} ${sense.definition}`);
-    if (sense.example !== undefined) lines.push(`     e.g. "${sense.example}"`);
-    lines.push(`     confidence: ${decayed}   last seen: ${sense.lastSeen.slice(0, 10)}`);
-  });
-
-  return lines.join('\n');
 }
 
 function cmdList(db: Store): void {

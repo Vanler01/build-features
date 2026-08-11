@@ -126,6 +126,89 @@ describe('formatTermReply — content flags: flag, and show', () => {
     expect(reply).toContain('[slur]');
     expect(reply).toContain('A derogatory term for a group.');
   });
+
+  it('suppresses a slur example even when one somehow reached the store', () => {
+    // rule 11 is enforced at write time by parseSense, but a row can arrive by
+    // migration, fixture or a future write path. The formatter is the lock on
+    // the door the reader is actually standing at.
+    const reply = formatTermReply(
+      term({
+        term: 'slur-example',
+        senses: [
+          sense({
+            definition: 'A derogatory term for a group.',
+            example: 'an example that models using it',
+            confidence: 'high',
+            contentFlags: ['slur'],
+          }),
+        ],
+      }),
+    );
+    expect(reply).toContain('A derogatory term for a group.');
+    expect(reply).not.toContain('an example that models using it');
+  });
+
+  it('still shows an example for a vulgar-but-not-slur term', () => {
+    const reply = formatTermReply(
+      term({
+        senses: [
+          sense({
+            definition: 'A crude term.',
+            example: 'a usage example',
+            confidence: 'high',
+            contentFlags: ['vulgar'],
+          }),
+        ],
+      }),
+    );
+    expect(reply).toContain('a usage example');
+  });
+});
+
+describe('formatTermReply — why a definition is uncertain', () => {
+  it('says "not fully sure" when nobody was ever confident', () => {
+    const reply = formatTermReply(
+      term({ senses: [sense({ definition: 'x', confidence: 'low', contentFlags: [] })] }),
+    );
+    expect(reply).toContain('not fully sure');
+    expect(reply).not.toContain('out of date');
+  });
+
+  it('says "may be out of date" when a confident entry has merely aged', () => {
+    // The two states ask the reader for opposite responses, so they must not
+    // share one hedge (rule 13).
+    const reply = formatTermReply(
+      term({
+        senses: [
+          sense({
+            definition: 'x',
+            confidence: 'high',
+            effectiveConfidence: 'low',
+            contentFlags: [],
+          }),
+        ],
+      }),
+    );
+    expect(reply).toContain('out of date');
+    expect(reply).not.toContain('not fully sure');
+  });
+
+  it('stays silent while an aged entry is still above low', () => {
+    const reply = formatTermReply(
+      term({
+        senses: [
+          sense({
+            definition: 'x',
+            confidence: 'high',
+            effectiveConfidence: 'medium',
+            contentFlags: [],
+          }),
+        ],
+      }),
+    );
+    expect(reply).not.toContain('out of date');
+    expect(reply).not.toContain('not fully sure');
+  });
 });
 
 describe('no-slang path', () => {
