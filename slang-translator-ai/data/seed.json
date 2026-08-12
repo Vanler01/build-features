@@ -193,7 +193,8 @@
         "definition": "A hot dog.",
         "confidence": "high",
         "content_flags": [],
-        "example": "He ate four glizzies."
+        "example": "He ate four glizzies.",
+        "region": "US"
       },
       {
         "definition": "A handgun.",
@@ -248,7 +249,14 @@
     "register": "genalpha",
     "senses": [
       {
-        "definition": "An exclamation of surprise, usually at someone's body.",
+        "definition": "An exclamation of surprise, usually at someone's body. A compression of \"goddamn\".",
+        "confidence": "high",
+        "content_flags": [
+          "sexual"
+        ]
+      },
+      {
+        "definition": "A large backside.",
         "confidence": "high",
         "content_flags": [
           "sexual"
@@ -484,7 +492,9 @@
       {
         "definition": "A sexual act involving ejaculation onto a person, often phrased as being \"glazed like a donut.\"",
         "confidence": "medium",
-        "content_flags": ["sexual"]
+        "content_flags": [
+          "sexual"
+        ]
       }
     ],
     "source": "claude",
@@ -584,7 +594,7 @@
     "register": "genalpha",
     "senses": [
       {
-        "definition": "Girls or women. Mildly derogatory and mostly used jokingly among boys.",
+        "definition": "Girls or women. Derogatory, usually said jokingly among boys.",
         "confidence": "medium",
         "content_flags": [
           "vulgar"
@@ -893,7 +903,7 @@
     "senses": [
       {
         "definition": "Prolonged sexual self-stimulation.",
-        "confidence": "medium",
+        "confidence": "high",
         "content_flags": [
           "sexual"
         ]
