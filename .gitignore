@@ -53,9 +53,3 @@ compass_artifact_*.md
 
 # TypeScript build output
 **/dist/
-
-# Personal session notes — local only (repo is public). See CLAUDE.md § Session notes.
-/PARTNER.md
-/PROGRESS.md
-/SKILL.md
-/LEARN.md
