@@ -24,6 +24,35 @@ instead of this file when working in one of them.
 None of the class-1 rules (CGEventTap, NSPanel, Accessibility, `_synth_pending`,
 `cache/`) apply to class 2, and vice versa.
 
+## Session notes (both classes)
+
+Four local notes files sit at the repo root. They are **git-ignored** because
+this repo is public and they hold personal working notes; they may be absent on
+a fresh clone. They are written in Thai.
+
+| file | what it holds |
+|---|---|
+| `PROGRESS.md` | status of every project + a dated work log, newest first |
+| `PARTNER.md` | how Blanc works: instruction style, git/push rules, what they value |
+| `SKILL.md` | pre-"done" checklists, traps hit before, open task list |
+| `LEARN.md` | how to do this work without AI — written for Blanc to learn from |
+
+**Start of session:** read `PROGRESS.md` and `PARTNER.md`, and the matching
+section of `SKILL.md`. If a note disagrees with git history or the running
+system, trust the real state and fix the note.
+
+**End of any work (finished, prepared, or paused halfway):**
+- Add an entry at the top of the log in `PROGRESS.md`:
+  `### YYYY-MM-DD — <project> — <topic>` with **ทำอะไรไป / สถานะ / ไฟล์ที่เกี่ยว /
+  ทำต่อครั้งหน้า**. Record only what was run and verified. Keep ~10 full
+  entries; fold older ones into one line each under "เก่ากว่านั้น".
+- Update the status tables at the top of `PROGRESS.md` when a status changed.
+- New preference or instruction style from Blanc → `PARTNER.md`.
+- New trap, check, or bug pattern → `SKILL.md`; tick or add items in its task list.
+- A technique worth learning by hand → `LEARN.md`.
+
+Never commit these four files; check `git diff --cached` before every commit.
+
 > Per-project rules live in each project's own `CLAUDE.md`. When working
 > inside one, Claude Code loads this root file **and** the project's
 > file (closer file overrides). This root file holds only what is **shared**.
