@@ -9,7 +9,7 @@ Shared conventions for the daemons. Per-project triggers, test rules, and
 file-ownership tables live in each submodule's own `AGENTS.md`.
 
 ## Key Commands
-- Install deps (en-th): `pip3 install pyobjc pythainlp --break-system-packages`
+- Install deps (retype): `pip3 install pyobjc pythainlp --break-system-packages`
 - Install deps (num):   `pip3 install pyobjc num2words --break-system-packages`
 - Install deps (morse): `pip3 install pyobjc --break-system-packages`
 - Install daemon: `bash <project>/install.sh`

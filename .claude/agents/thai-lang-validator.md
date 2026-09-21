@@ -1,6 +1,6 @@
 ---
 name: thai-lang-validator
-description: Specialist in Thai language processing and Kedmanee keyboard mapping. Use when modifying keyboard_map.py, EN_TO_THAI mapping, PyThaiNLP integration, or Thai word validation logic in en-th-word-swap. MUST BE USED before any change to keyboard_map.py.
+description: Specialist in Thai language processing and Kedmanee keyboard mapping. Use when modifying keyboard_map.py, EN_TO_THAI mapping, PyThaiNLP integration, or Thai word validation logic in retype (formerly en-th-word-swap). MUST BE USED before any change to keyboard_map.py.
 tools: Read, Bash, Glob
 model: sonnet
 ---

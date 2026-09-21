@@ -6,7 +6,7 @@ Monorepo umbrella holding **two classes of project**.
 git submodule with its own repo, tests, and `cache/`. **Everything in this file
 below applies to class 1 only.**
 
-- **en-th-word-swap** — keyboard layout fix (EN↔TH mistype correction)
+- **retype** (formerly en-th-word-swap) — keyboard layout fix (EN↔TH mistype correction)
 - **num-to-text** — number-to-words floating overlay
 - **morse-code** — text ↔ Morse converter panel (Option+M hotkey)
 
@@ -56,7 +56,7 @@ None of the class-1 rules (CGEventTap, NSPanel, Accessibility, `_synth_pending`,
 - `git push` prompts for approval (it is in the `ask` list in
   `.claude/settings.json`); merge to main is done by the user
 
-Note: en-th-word-swap and num-to-text monitor/inject keystrokes system-wide;
+Note: retype and num-to-text monitor/inject keystrokes system-wide;
 morse-code uses CGEventTap only for its Option+M hotkey (no injection).
 
 @AGENTS.md
